@@ -3,12 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
-// Ruta principal redirige al login
+// Ruta principal redirige al dashboard si hay sesion, o al login
 Route::get('/', function () {
-    return redirect('/login');
+    if (session()->has('jwt_token')) {
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('login');
 });
 
-// Rutas de Autenticación
+// Rutas de Autenticacion
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -16,32 +19,44 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-// Rutas protegidas (Dashboard, etc.)
-Route::middleware(['web'])->group(function () {
+// Rutas protegidas (Dashboard, Pacientes, Citas, Historias Clinicas)
+Route::middleware(['web', 'auth.jwt'])->group(function () {
     Route::get('/dashboard', function () {
         $token = session('jwt_token');
         $appointments = [];
         $patients = [];
-        if ($token) {
-            try {
-                $apiUrl = config('services.backend.api_url', env('API_BASE_URL', 'http://backend:8080/api'));
-                $res = \Illuminate\Support\Facades\Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $token,
-                    'Accept' => 'application/json'
-                ])->timeout(4)->get($apiUrl . '/appointments');
-                if ($res->successful()) {
-                    $appointments = $res->json('data') ?? [];
-                }
-                $pRes = \Illuminate\Support\Facades\Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $token,
-                    'Accept' => 'application/json'
-                ])->timeout(4)->get($apiUrl . '/patients');
-                if ($pRes->successful()) {
-                    $patients = $pRes->json('data') ?? [];
-                }
-            } catch (\Exception $e) {
-                // Silencioso para no romper la experiencia si el backend tarda
+
+        try {
+            $apiUrl = config('services.backend.api_url', env('API_BASE_URL', 'http://backend:8080/api'));
+            $res = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json'
+            ])->timeout(4)->get($apiUrl . '/appointments');
+
+            if ($res->status() === 401) {
+                session()->flush();
+                return redirect()->route('login')->with('error', 'Tu sesión ha expirado. Por favor ingresa nuevamente.');
             }
+
+            if ($res->successful()) {
+                $appointments = $res->json('data') ?? [];
+            }
+
+            $pRes = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json'
+            ])->timeout(4)->get($apiUrl . '/patients');
+
+            if ($pRes->status() === 401) {
+                session()->flush();
+                return redirect()->route('login')->with('error', 'Tu sesión ha expirado. Por favor ingresa nuevamente.');
+            }
+
+            if ($pRes->successful()) {
+                $patients = $pRes->json('data') ?? [];
+            }
+        } catch (\Exception $e) {
+            // Silencioso para no romper la experiencia si el backend tarda
         }
 
         $today = date('Y-m-d');
@@ -51,7 +66,7 @@ Route::middleware(['web'])->group(function () {
 
         return view('dashboard', [
             'name' => session('user_name', 'Profesional'),
-            'role' => session('user_role', 'ROLE_ADMIN'),
+            'role' => session('user_role', 'ROLE_PSYCHOLOGIST'),
             'appointments' => $appointments,
             'todayAppointments' => $todayAppointments,
             'patients' => $patients,

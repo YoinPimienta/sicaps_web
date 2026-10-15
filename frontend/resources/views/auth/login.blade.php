@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión — SICAPS | Sistema de Atención Psicológica</title>
     <link rel="icon" href="data:,">
+    @if(config('app.env') === 'production' || !empty(env('RENDER')) || (request()->header('x-forwarded-proto') === 'https') || str_contains(request()->getHost(), 'onrender.com'))
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    @endif
     
     <!-- Tipografía: Plus Jakarta Sans & DM Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -174,6 +177,20 @@
                     <div class="text-sm text-sicaps-text font-medium">
                         <p class="font-semibold text-sicaps-danger">No fue posible iniciar sesión</p>
                         <p class="text-xs text-sicaps-muted mt-0.5">{{ $errors->first() }}</p>
+                    </div>
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="mb-6 bg-sicaps-danger-soft border border-sicaps-danger/30 rounded-xl p-4 flex items-start gap-3">
+                    <div class="p-1 rounded-full bg-sicaps-danger text-white flex-shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="text-sm text-sicaps-text font-medium">
+                        <p class="font-semibold text-sicaps-danger">Acceso protegido</p>
+                        <p class="text-xs text-sicaps-muted mt-0.5">{{ session('error') }}</p>
                     </div>
                 </div>
             @endif

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'SICAPS - Sistema de Atención Psicológica')</title>
     <link rel="icon" href="data:,">
+    @if(config('app.env') === 'production' || !empty(env('RENDER')) || (request()->header('x-forwarded-proto') === 'https') || str_contains(request()->getHost(), 'onrender.com'))
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    @endif
     
     <!-- Tipografía: Plus Jakarta Sans & DM Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

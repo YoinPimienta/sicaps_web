@@ -10,6 +10,9 @@ class AuthController
 {
     public function showLoginForm()
     {
+        if (Session::has('jwt_token')) {
+            return redirect()->route('dashboard');
+        }
         return view('auth.login');
     }
 
@@ -54,11 +57,16 @@ class AuthController
     public function logout(Request $request)
     {
         Session::flush();
-        return redirect('/login');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login')->with('success', 'Has cerrado sesión exitosamente.');
     }
 
     public function showRegisterForm()
     {
+        if (Session::has('jwt_token')) {
+            return redirect()->route('dashboard');
+        }
         return view('auth.register');
     }
 
