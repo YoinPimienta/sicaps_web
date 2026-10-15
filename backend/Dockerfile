@@ -11,6 +11,9 @@ RUN mvn dependency:go-offline || true
 # Copiar código fuente
 COPY src src
 
+# Limitar memoria de Maven para compilar sin problemas en máquinas gratuitas de Render
+ENV MAVEN_OPTS="-Xmx384m -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+
 # Compilar proyecto optimizado
 RUN mvn clean package -DskipTests
 
