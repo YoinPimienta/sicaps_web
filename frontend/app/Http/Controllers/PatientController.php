@@ -25,14 +25,11 @@ class PatientController extends Controller
             $response = Http::withHeaders($this->getHeaders())
                 ->get($this->getApiUrl() . '/patients');
 
-            if ($response->successful()) {
-                $patients = $response->json('data') ?? [];
-                return view('patients.index', compact('patients'));
-            }
-            
-            return back()->with('error', 'No se pudieron cargar los pacientes.');
+            $patients = $response->successful() ? ($response->json('data') ?? []) : [];
+            return view('patients.index', compact('patients'));
         } catch (\Exception $e) {
-            return back()->with('error', 'Error de conexión con el backend.');
+            $patients = [];
+            return view('patients.index', compact('patients'));
         }
     }
 

@@ -283,49 +283,49 @@
             </span>
         </div>
 
+        @php
+            $startOfWeek = \Carbon\Carbon::now()->startOfWeek();
+        @endphp
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-            @php
-                $dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-            @endphp
-            @foreach($dias as $index => $dia)
+            @for($i = 0; $i < 5; $i++)
+                @php
+                    $currentDay = $startOfWeek->copy()->addDays($i);
+                    $dayDateStr = $currentDay->format('Y-m-d');
+                    $dayAppointments = array_values(array_filter($appointments ?? [], function($a) use ($dayDateStr) {
+                        return ($a['date'] ?? '') === $dayDateStr;
+                    }));
+                @endphp
                 <div class="bg-sicaps-bg rounded-xl border border-sicaps-border p-3.5 flex flex-col min-h-[320px]">
                     <div class="flex items-center justify-between pb-2 mb-3 border-b border-sicaps-border">
-                        <span class="text-xs font-bold uppercase tracking-wider text-sicaps-text">{{ $dia }}</span>
-                        <span class="text-[11px] text-sicaps-muted font-medium">{{ 13 + $index }} Oct</span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-sicaps-text capitalize">
+                            {{ $currentDay->locale('es')->isoFormat('dddd') }}
+                        </span>
+                        <span class="text-[11px] text-sicaps-muted font-medium">
+                            {{ $currentDay->locale('es')->isoFormat('D MMM') }}
+                        </span>
                     </div>
 
                     <div class="space-y-2.5 flex-1">
-                        @if($index === 0)
+                        @forelse($dayAppointments as $dApt)
+                            @php
+                                $dpName = ($dApt['patient']['user']['name'] ?? '') . ' ' . ($dApt['patient']['user']['lastName'] ?? '');
+                                $dIsVirtual = str_contains(strtolower($dApt['observations'] ?? ''), 'virtual') || str_contains(strtolower($dApt['reason'] ?? ''), 'virtual');
+                            @endphp
                             <div class="p-2.5 rounded-lg bg-white border border-sicaps-border/80 shadow-xs hover:border-sicaps-primary transition">
-                                <span class="text-[11px] font-bold text-sicaps-primary block">09:00 AM</span>
-                                <span class="text-xs font-bold text-sicaps-text block mt-0.5">María P. Gómez</span>
-                                <span class="text-[10px] text-sicaps-muted">Control Ansiedad</span>
+                                <span class="text-[11px] font-bold text-sicaps-primary block">
+                                    {{ substr($dApt['time'], 0, 5) }} {{ $dIsVirtual ? '(Virtual)' : '' }}
+                                </span>
+                                <span class="text-xs font-bold text-sicaps-text block mt-0.5 truncate">{{ $dpName ?: 'Paciente' }}</span>
+                                <span class="text-[10px] text-sicaps-muted block truncate">{{ $dApt['reason'] }}</span>
                             </div>
-                            <div class="p-2.5 rounded-lg bg-white border border-sicaps-border/80 shadow-xs hover:border-sicaps-primary transition">
-                                <span class="text-[11px] font-bold text-sicaps-info block">02:00 PM (Virtual)</span>
-                                <span class="text-xs font-bold text-sicaps-text block mt-0.5">Carlos Rodríguez</span>
-                                <span class="text-[10px] text-sicaps-muted">TCC Sesión #2</span>
+                        @empty
+                            <div class="h-full flex items-center justify-center text-[11px] text-sicaps-muted/60 italic py-8 text-center">
+                                Sin citas este día
                             </div>
-                        @elseif($index === 2)
-                            <div class="p-2.5 rounded-lg bg-white border border-sicaps-border/80 shadow-xs hover:border-sicaps-primary transition">
-                                <span class="text-[11px] font-bold text-sicaps-primary block">10:30 AM</span>
-                                <span class="text-xs font-bold text-sicaps-text block mt-0.5">Ana L. Méndez</span>
-                                <span class="text-[10px] text-sicaps-muted">Manejo de Duelo</span>
-                            </div>
-                        @elseif($index === 4)
-                            <div class="p-2.5 rounded-lg bg-white border border-sicaps-border/80 shadow-xs hover:border-sicaps-primary transition">
-                                <span class="text-[11px] font-bold text-sicaps-primary block">11:00 AM</span>
-                                <span class="text-xs font-bold text-sicaps-text block mt-0.5">David Valenzuela</span>
-                                <span class="text-[10px] text-sicaps-muted">Evaluación Inicial</span>
-                            </div>
-                        @else
-                            <div class="h-full flex items-center justify-center text-[11px] text-sicaps-muted/60 italic py-8">
-                                Espacios libres
-                            </div>
-                        @endif
+                        @endforelse
                     </div>
                 </div>
-            @endforeach
+            @endfor
         </div>
     </div>
 

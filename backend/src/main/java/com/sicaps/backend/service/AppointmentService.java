@@ -63,7 +63,7 @@ public class AppointmentService {
     }
 
     public List<Appointment> getAllAppointments() {
-        return appointmentRepository.findAll();
+        return appointmentRepository.findAllWithDetails();
     }
     
     public List<Appointment> getAppointmentsByPatient(Long patientId) {

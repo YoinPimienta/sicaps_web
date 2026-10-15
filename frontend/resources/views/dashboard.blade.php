@@ -4,27 +4,37 @@
 @section('header_title', 'Panel de Control Clínico')
 
 @section('content')
+@php
+    $todayAppointments = $todayAppointments ?? [];
+    $appointments = $appointments ?? [];
+    $patients = $patients ?? [];
+
+    $hour = (int) date('H');
+    $greeting = ($hour >= 5 && $hour < 12) ? 'Buenos días' : (($hour >= 12 && $hour < 19) ? 'Buenas tardes' : 'Buenas noches');
+    $userName = !empty($name) && $name !== 'Usuario' ? $name : session('user_name', 'Profesional');
+    
+    $totalToday = count($todayAppointments);
+    $totalPatients = count($patients);
+    $totalAppointments = count($appointments);
+    
+    // Identificar citas completadas de la base de datos
+    $completedAppointments = array_values(array_filter($appointments, function($a) {
+        $st = strtoupper($a['status'] ?? '');
+        return in_array($st, ['COMPLETADA', 'COMPLETED']);
+    }));
+@endphp
+
 <div class="space-y-8" x-data="{ filterType: 'all' }">
     
     <!-- SALUDO Y ENCABEZADO SUPERIOR -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-2">
         <div>
-            @php
-                $hour = (int) date('H');
-                $greeting = 'Buenos días';
-                if ($hour >= 12 && $hour < 19) {
-                    $greeting = 'Buenas tardes';
-                } elseif ($hour >= 19 || $hour < 5) {
-                    $greeting = 'Buenas noches';
-                }
-                $displayName = !empty($name) && $name !== 'Usuario' ? $name : 'Dra. Camila';
-            @endphp
             <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-sicaps-text flex items-center gap-2">
-                <span>{{ $greeting }}, {{ $displayName }}</span>
-                <span class="inline-block animate-bounce" style="animation-duration: 2.5s;">👋</span>
+                <span>{{ $greeting }}, {{ $userName }}</span>
+                <span class="inline-block">👋</span>
             </h1>
             <p class="mt-1 text-sm text-sicaps-muted">
-                Hoy es {{ \Carbon\Carbon::now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}. Tu jornada clínica está lista y organizada.
+                Hoy es {{ \Carbon\Carbon::now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}. Información en tiempo real de tu consulta.
             </p>
         </div>
 
@@ -51,7 +61,7 @@
         </div>
     </div>
 
-    <!-- 4 TARJETAS DE MÉTRICAS CON SPARKLINES Y BADGES -->
+    <!-- 4 TARJETAS DE MÉTRICAS 100% REALES -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         
         <!-- Tarjeta 1: Citas de Hoy -->
@@ -59,13 +69,9 @@
             <div class="flex items-start justify-between">
                 <div>
                     <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">Citas de Hoy</span>
-                    @php
-                        $todayAppointmentsCount = count($appointments ?? []);
-                        $displayTodayCount = $todayAppointmentsCount > 0 ? $todayAppointmentsCount : 6;
-                    @endphp
                     <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-3xl font-bold text-sicaps-text">{{ $displayTodayCount }}</span>
-                        <span class="text-xs text-sicaps-muted">atenciones</span>
+                        <span class="text-3xl font-bold text-sicaps-text">{{ $totalToday }}</span>
+                        <span class="text-xs text-sicaps-muted">para hoy</span>
                     </div>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-sicaps-primary-soft text-sicaps-primary flex items-center justify-center flex-shrink-0">
@@ -76,26 +82,23 @@
             </div>
             
             <div class="mt-4 pt-3 border-t border-sicaps-border/60 flex items-center justify-between text-xs">
-                <span class="text-sicaps-muted">4 presenciales • 2 virtuales</span>
-                <span class="inline-flex items-center gap-1 font-medium text-sicaps-primary bg-sicaps-primary-soft px-2 py-0.5 rounded-full">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
-                    +2 vs ayer
-                </span>
+                @if($totalToday > 0)
+                    <span class="text-sicaps-primary font-medium">{{ $totalToday }} {{ $totalToday == 1 ? 'sesión programada' : 'sesiones programadas' }}</span>
+                @else
+                    <span class="text-sicaps-muted">Sin citas agendadas hoy</span>
+                @endif
+                <a href="{{ route('appointments.index') }}" class="text-xs text-sicaps-primary hover:underline">Ver agenda</a>
             </div>
         </div>
 
-        <!-- Tarjeta 2: Pacientes Activos -->
+        <!-- Tarjeta 2: Pacientes Registrados -->
         <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft flex flex-col justify-between hover:border-sicaps-primary/40 transition">
             <div class="flex items-start justify-between">
                 <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">Pacientes Activos</span>
-                    @php
-                        $patientsCount = count($patients ?? []);
-                        $displayPatientsCount = $patientsCount > 0 ? $patientsCount : 48;
-                    @endphp
+                    <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">Pacientes Registrados</span>
                     <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-3xl font-bold text-sicaps-text">{{ $displayPatientsCount }}</span>
-                        <span class="text-xs text-sicaps-muted">en seguimiento</span>
+                        <span class="text-3xl font-bold text-sicaps-text">{{ $totalPatients }}</span>
+                        <span class="text-xs text-sicaps-muted">en base de datos</span>
                     </div>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-sicaps-success-soft text-sicaps-success flex items-center justify-center flex-shrink-0">
@@ -106,21 +109,23 @@
             </div>
             
             <div class="mt-4 pt-3 border-t border-sicaps-border/60 flex items-center justify-between text-xs">
-                <span class="text-sicaps-muted">Continuidad clínica</span>
-                <span class="inline-flex items-center gap-1 font-medium text-sicaps-success bg-sicaps-success-soft px-2 py-0.5 rounded-full">
-                    92% asistencia
-                </span>
+                @if($totalPatients > 0)
+                    <span class="text-sicaps-success font-medium">{{ $totalPatients }} {{ $totalPatients == 1 ? 'expediente clínico' : 'expedientes clínicos' }}</span>
+                @else
+                    <span class="text-sicaps-muted">No hay pacientes aún</span>
+                @endif
+                <a href="{{ route('patients.index') }}" class="text-xs text-sicaps-primary hover:underline">Directorio</a>
             </div>
         </div>
 
-        <!-- Tarjeta 3: Notas de Evolución Pendientes -->
+        <!-- Tarjeta 3: Total Citas en Sistema -->
         <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft flex flex-col justify-between hover:border-sicaps-primary/40 transition">
             <div class="flex items-start justify-between">
                 <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">Notas Pendientes</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">Total Citas en Sistema</span>
                     <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-3xl font-bold text-sicaps-text">3</span>
-                        <span class="text-xs text-sicaps-muted">por registrar</span>
+                        <span class="text-3xl font-bold text-sicaps-text">{{ $totalAppointments }}</span>
+                        <span class="text-xs text-sicaps-muted">histórico total</span>
                     </div>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-sicaps-warning-soft text-sicaps-warning flex items-center justify-center flex-shrink-0">
@@ -131,61 +136,61 @@
             </div>
             
             <div class="mt-4 pt-3 border-t border-sicaps-border/60 flex items-center justify-between text-xs">
-                <span class="text-sicaps-muted">Expediente SOAP</span>
-                <span class="inline-flex items-center gap-1 font-medium text-sicaps-warning bg-sicaps-warning-soft px-2 py-0.5 rounded-full">
-                    Atención prioritaria
-                </span>
+                @if($totalAppointments > 0)
+                    <span class="text-sicaps-warning font-medium">{{ count($completedAppointments) }} atendidas</span>
+                @else
+                    <span class="text-sicaps-muted">Sin citas registradas</span>
+                @endif
+                <a href="{{ route('appointments.index') }}" class="text-xs text-sicaps-primary hover:underline">Gestionar</a>
             </div>
         </div>
 
-        <!-- Tarjeta 4: Adherencia Terapéutica -->
+        <!-- Tarjeta 4: Rol Asignado -->
         <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft flex flex-col justify-between hover:border-sicaps-primary/40 transition">
             <div class="flex items-start justify-between">
                 <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">Adherencia Terapéutica</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">Perfil de Acceso</span>
                     <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-3xl font-bold text-sicaps-text">94%</span>
-                        <span class="text-xs text-sicaps-muted">adhesión</span>
+                        <span class="text-lg font-bold text-sicaps-text">{{ str_replace('ROLE_', '', session('user_role', 'ADMIN')) }}</span>
                     </div>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-sicaps-info-soft text-sicaps-info flex items-center justify-center flex-shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/>
                     </svg>
                 </div>
             </div>
             
             <div class="mt-4 pt-3 border-t border-sicaps-border/60 flex items-center justify-between text-xs">
-                <span class="text-sicaps-muted">Últimos 30 días</span>
+                <span class="text-sicaps-muted">Permisos completos</span>
                 <span class="inline-flex items-center gap-1 font-medium text-sicaps-info bg-sicaps-info-soft px-2 py-0.5 rounded-full">
-                    Excelente estado
+                    Activo
                 </span>
             </div>
         </div>
 
     </div>
 
-    <!-- DISTRIBUCIÓN PRINCIPAL (COLUMNA IZQUIERDA: AGENDA DE HOY | COLUMNA DERECHA: ACCESOS Y NOTAS PENDIENTES) -->
+    <!-- DISTRIBUCIÓN PRINCIPAL (COLUMNA IZQUIERDA: AGENDA DE HOY | COLUMNA DERECHA: ACCESOS Y NOTAS) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         <!-- COLUMNA IZQUIERDA: AGENDA DE HOY (8 cols) -->
         <div class="lg:col-span-8 bg-white rounded-card border border-sicaps-border shadow-soft overflow-hidden">
             
-            <!-- Encabezado de la Agenda con Filtros -->
             <div class="p-6 border-b border-sicaps-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <div class="flex items-center gap-2.5">
                         <h2 class="text-lg font-bold text-sicaps-text">Agenda de Hoy</h2>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sicaps-primary-soft text-sicaps-primary">
-                            {{ $displayTodayCount }} citas programadas
+                            {{ $totalToday }} {{ $totalToday == 1 ? 'cita programada' : 'citas programadas' }}
                         </span>
                     </div>
                     <p class="text-xs text-sicaps-muted mt-1">
-                        Ordenadas cronológicamente. Puedes registrar la evolución inmediatamente al concluir.
+                        Citas que corresponden a la fecha de hoy ({{ date('d/m/Y') }}).
                     </p>
                 </div>
 
-                <!-- Filtro por tipo de atención -->
+                @if($totalToday > 0)
                 <div class="inline-flex p-1 bg-sicaps-bg rounded-lg border border-sicaps-border text-xs font-medium">
                     <button 
                         @click="filterType = 'all'" 
@@ -209,260 +214,124 @@
                         Virtuales
                     </button>
                 </div>
+                @endif
             </div>
 
-            <!-- Listado de Citas / Timeline Interactivo -->
+            <!-- Listado REAL de Citas de Hoy -->
             <div class="divide-y divide-sicaps-border/70">
                 
-                @if (!empty($appointments) && count($appointments) > 0)
-                    {{-- Si hay citas reales en el backend --}}
-                    @foreach($appointments as $apt)
-                        @php
-                            $pName = ($apt['patient']['user']['name'] ?? '') . ' ' . ($apt['patient']['user']['lastName'] ?? '');
-                            $initials = strtoupper(substr($apt['patient']['user']['name'] ?? 'P', 0, 1) . substr($apt['patient']['user']['lastName'] ?? 'P', 0, 1));
-                            $isVirtual = str_contains(strtolower($apt['observations'] ?? ''), 'virtual') || str_contains(strtolower($apt['reason'] ?? ''), 'virtual');
-                            $itemType = $isVirtual ? 'virtual' : 'presencial';
-                        @endphp
-                        <div 
-                            x-show="filterType === 'all' || filterType === '{{ $itemType }}'"
-                            class="p-5 hover:bg-[#FAF9F6] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                        >
-                            <div class="flex items-start gap-4">
-                                <!-- Hora -->
-                                <div class="w-16 flex-shrink-0 text-left sm:text-right">
-                                    <span class="block text-sm font-bold text-sicaps-text">{{ substr($apt['time'], 0, 5) }}</span>
-                                    <span class="text-[11px] text-sicaps-muted">45 min</span>
-                                </div>
-
-                                <!-- Línea divisoria suave -->
-                                <div class="hidden sm:block w-px self-stretch bg-sicaps-border"></div>
-
-                                <!-- Avatar y Paciente -->
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-sicaps-primary-soft text-sicaps-primary font-bold text-sm flex items-center justify-center flex-shrink-0 border border-sicaps-primary/20">
-                                        {{ $initials }}
-                                    </div>
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <h3 class="text-sm font-bold text-sicaps-text hover:text-sicaps-primary transition">
-                                                <a href="{{ route('patients.show', $apt['patient']['id'] ?? 0) }}">
-                                                    {{ $pName ?: 'Paciente Registrado' }}
-                                                </a>
-                                            </h3>
-                                            @if($isVirtual)
-                                                <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-info bg-sicaps-info-soft px-2 py-0.5 rounded-full">
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
-                                                    Virtual
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-muted bg-sicaps-sand-light px-2 py-0.5 rounded-full">
-                                                    <svg class="w-3 h-3 text-sicaps-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-                                                    Presencial • Cons. 2
-                                                </span>
-                                            @endif
-                                        </div>
-                                        <p class="text-xs text-sicaps-muted mt-0.5">{{ $apt['reason'] }}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Estado y Acciones Rápidas -->
-                            <div class="flex items-center gap-3 sm:self-center pl-20 sm:pl-0">
-                                @if(in_array($apt['status'], ['COMPLETADA', 'COMPLETED']))
-                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-success-soft text-sicaps-success">
-                                        Atendida
-                                    </span>
-                                @elseif(in_array($apt['status'], ['CANCELADA', 'CANCELLED']))
-                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-danger-soft text-sicaps-danger">
-                                        Cancelada
-                                    </span>
-                                @else
-                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-primary-soft text-sicaps-primary">
-                                        Programada
-                                    </span>
-                                @endif
-
-                                <a 
-                                    href="{{ route('clinical.evolutions.create', $apt['patient']['id'] ?? 0) }}" 
-                                    class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover px-3 py-1.5 rounded-md hover:bg-sicaps-primary-soft transition"
-                                >
-                                    Evolución →
-                                </a>
-                            </div>
-                        </div>
-                    @endforeach
-                @else
-                    {{-- Agenda de Demostración Clínica Serene (Basada en la maqueta 1:1) --}}
-                    
-                    <!-- Cita 1: 09:00 AM -->
+                @forelse($todayAppointments as $apt)
+                    @php
+                        $pName = ($apt['patient']['user']['name'] ?? '') . ' ' . ($apt['patient']['user']['lastName'] ?? '');
+                        $initials = strtoupper(substr($apt['patient']['user']['name'] ?? 'P', 0, 1) . substr($apt['patient']['user']['lastName'] ?? 'P', 0, 1));
+                        $isVirtual = str_contains(strtolower($apt['observations'] ?? ''), 'virtual') || str_contains(strtolower($apt['reason'] ?? ''), 'virtual');
+                        $itemType = $isVirtual ? 'virtual' : 'presencial';
+                    @endphp
                     <div 
-                        x-show="filterType === 'all' || filterType === 'presencial'"
+                        x-show="filterType === 'all' || filterType === '{{ $itemType }}'"
                         class="p-5 hover:bg-[#FAF9F6] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
                         <div class="flex items-start gap-4">
+                            <!-- Hora -->
                             <div class="w-16 flex-shrink-0 text-left sm:text-right">
-                                <span class="block text-sm font-bold text-sicaps-text">09:00 AM</span>
+                                <span class="block text-sm font-bold text-sicaps-text">{{ substr($apt['time'], 0, 5) }}</span>
                                 <span class="text-[11px] text-sicaps-muted">45 min</span>
                             </div>
+
                             <div class="hidden sm:block w-px self-stretch bg-sicaps-border"></div>
+
+                            <!-- Paciente -->
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-sicaps-primary-soft text-sicaps-primary font-bold text-sm flex items-center justify-center flex-shrink-0 border border-sicaps-primary/20">
-                                    MG
+                                    {{ $initials }}
                                 </div>
                                 <div>
                                     <div class="flex items-center gap-2">
-                                        <h3 class="text-sm font-bold text-sicaps-text">María Paula Gómez</h3>
-                                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-muted bg-sicaps-sand-light px-2 py-0.5 rounded-full">
-                                            <svg class="w-3 h-3 text-sicaps-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-                                            Presencial • Cons. 1
-                                        </span>
+                                        <h3 class="text-sm font-bold text-sicaps-text hover:text-sicaps-primary transition">
+                                            <a href="{{ route('patients.show', $apt['patient']['id'] ?? 0) }}">
+                                                {{ $pName ?: 'Paciente Registrado' }}
+                                            </a>
+                                        </h3>
+                                        @if($isVirtual)
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-info bg-sicaps-info-soft px-2 py-0.5 rounded-full">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+                                                Virtual
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-muted bg-sicaps-sand-light px-2 py-0.5 rounded-full">
+                                                <svg class="w-3 h-3 text-sicaps-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                                                Presencial
+                                            </span>
+                                        @endif
                                     </div>
-                                    <p class="text-xs text-sicaps-muted mt-0.5">Control de Ansiedad Generalizada — Sesión #6</p>
+                                    <p class="text-xs text-sicaps-muted mt-0.5">{{ $apt['reason'] }}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-3 pl-20 sm:pl-0">
-                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-success-soft text-sicaps-success">
-                                En sala de espera
-                            </span>
-                            <a href="{{ route('patients.index') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover px-3 py-1.5 rounded-md hover:bg-sicaps-primary-soft transition">
-                                Ver Ficha →
+                        <!-- Estado y Acciones Rápidas -->
+                        <div class="flex items-center gap-3 sm:self-center pl-20 sm:pl-0">
+                            @if(in_array($apt['status'], ['COMPLETADA', 'COMPLETED']))
+                                <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-success-soft text-sicaps-success">
+                                    Atendida
+                                </span>
+                            @elseif(in_array($apt['status'], ['CANCELADA', 'CANCELLED']))
+                                <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-danger-soft text-sicaps-danger">
+                                    Cancelada
+                                </span>
+                            @else
+                                <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-primary-soft text-sicaps-primary">
+                                    Programada
+                                </span>
+                            @endif
+
+                            <a 
+                                href="{{ route('patients.show', $apt['patient']['id'] ?? 0) }}" 
+                                class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover px-3 py-1.5 rounded-md hover:bg-sicaps-primary-soft transition"
+                            >
+                                Ficha →
                             </a>
                         </div>
                     </div>
-
-                    <!-- Cita 2: 10:30 AM -->
-                    <div 
-                        x-show="filterType === 'all' || filterType === 'virtual'"
-                        class="p-5 hover:bg-[#FAF9F6] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                    >
-                        <div class="flex items-start gap-4">
-                            <div class="w-16 flex-shrink-0 text-left sm:text-right">
-                                <span class="block text-sm font-bold text-sicaps-text">10:30 AM</span>
-                                <span class="text-[11px] text-sicaps-muted">45 min</span>
+                @empty
+                    <!-- Estado vacío REAL: Cuando no hay citas agendadas hoy -->
+                    <div class="py-16 px-6 text-center">
+                        <div class="max-w-sm mx-auto flex flex-col items-center">
+                            <div class="w-14 h-14 rounded-full bg-sicaps-primary-soft text-sicaps-primary flex items-center justify-center mb-4">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.253M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 9v7.5"/>
+                                </svg>
                             </div>
-                            <div class="hidden sm:block w-px self-stretch bg-sicaps-border"></div>
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-sicaps-sand text-sicaps-text font-bold text-sm flex items-center justify-center flex-shrink-0 border border-sicaps-border">
-                                    CR
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="text-sm font-bold text-sicaps-text">Carlos Rodríguez Soto</h3>
-                                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-info bg-sicaps-info-soft px-2 py-0.5 rounded-full">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
-                                            Telepsicología • Enlace activo
-                                        </span>
-                                    </div>
-                                    <p class="text-xs text-sicaps-muted mt-0.5">Terapia Cognitivo-Conductual — Sesión #2</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-3 pl-20 sm:pl-0">
-                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-primary-soft text-sicaps-primary">
-                                Confirmada
-                            </span>
-                            <a href="{{ route('patients.index') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover px-3 py-1.5 rounded-md hover:bg-sicaps-primary-soft transition">
-                                Ver Ficha →
+                            <h3 class="text-base font-bold text-sicaps-text">No tienes citas programadas para hoy</h3>
+                            <p class="text-xs text-sicaps-muted mt-1.5 mb-5 leading-relaxed">
+                                Tu agenda de hoy está despejada. Puedes agendar una nueva consulta o revisar las citas futuras en el módulo general.
+                            </p>
+                            <a 
+                                href="{{ route('appointments.create') }}" 
+                                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-[10px] bg-sicaps-primary text-white text-xs font-semibold hover:bg-sicaps-primary-hover transition"
+                            >
+                                + Agendar Nueva Cita
                             </a>
                         </div>
                     </div>
-
-                    <!-- Cita 3: 02:00 PM -->
-                    <div 
-                        x-show="filterType === 'all' || filterType === 'presencial'"
-                        class="p-5 hover:bg-[#FAF9F6] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                    >
-                        <div class="flex items-start gap-4">
-                            <div class="w-16 flex-shrink-0 text-left sm:text-right">
-                                <span class="block text-sm font-bold text-sicaps-text">02:00 PM</span>
-                                <span class="text-[11px] text-sicaps-muted">45 min</span>
-                            </div>
-                            <div class="hidden sm:block w-px self-stretch bg-sicaps-border"></div>
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-sicaps-primary-soft text-sicaps-primary font-bold text-sm flex items-center justify-center flex-shrink-0 border border-sicaps-primary/20">
-                                    AL
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="text-sm font-bold text-sicaps-text">Ana Lucía Méndez</h3>
-                                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-muted bg-sicaps-sand-light px-2 py-0.5 rounded-full">
-                                            <svg class="w-3 h-3 text-sicaps-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-                                            Presencial • Cons. 1
-                                        </span>
-                                    </div>
-                                    <p class="text-xs text-sicaps-muted mt-0.5">Manejo de Duelo y Reestructuración Emocional</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-3 pl-20 sm:pl-0">
-                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-sand-light text-sicaps-text">
-                                Programada
-                            </span>
-                            <a href="{{ route('patients.index') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover px-3 py-1.5 rounded-md hover:bg-sicaps-primary-soft transition">
-                                Ver Ficha →
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Cita 4: 03:30 PM -->
-                    <div 
-                        x-show="filterType === 'all' || filterType === 'virtual'"
-                        class="p-5 hover:bg-[#FAF9F6] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                    >
-                        <div class="flex items-start gap-4">
-                            <div class="w-16 flex-shrink-0 text-left sm:text-right">
-                                <span class="block text-sm font-bold text-sicaps-text">03:30 PM</span>
-                                <span class="text-[11px] text-sicaps-muted">45 min</span>
-                            </div>
-                            <div class="hidden sm:block w-px self-stretch bg-sicaps-border"></div>
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-sicaps-info-soft text-sicaps-info font-bold text-sm flex items-center justify-center flex-shrink-0 border border-sicaps-info/20">
-                                    DV
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="text-sm font-bold text-sicaps-text">David Valenzuela</h3>
-                                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-info bg-sicaps-info-soft px-2 py-0.5 rounded-full">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
-                                            Telepsicología • Pendiente confirmación
-                                        </span>
-                                    </div>
-                                    <p class="text-xs text-sicaps-muted mt-0.5">Primera Sesión de Evaluación y Diagnóstico</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-3 pl-20 sm:pl-0">
-                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-warning-soft text-sicaps-warning">
-                                Por Confirmar
-                            </span>
-                            <a href="{{ route('patients.index') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover px-3 py-1.5 rounded-md hover:bg-sicaps-primary-soft transition">
-                                Ver Ficha →
-                            </a>
-                        </div>
-                    </div>
-
-                @endif
+                @endforelse
 
             </div>
 
-            <!-- Pie de tarjeta de agenda con enlace a citas completas -->
+            @if($totalAppointments > 0)
             <div class="p-4 bg-sicaps-sand-light/40 border-t border-sicaps-border text-center">
                 <a href="{{ route('appointments.index') }}" class="text-xs font-semibold text-sicaps-primary hover:text-sicaps-primary-hover hover:underline transition">
-                    Ver agenda semanal y mensual completa →
+                    Ver agenda completa con todas las citas ({{ $totalAppointments }}) →
                 </a>
             </div>
+            @endif
 
         </div>
 
         <!-- COLUMNA DERECHA: ACCESOS RÁPIDOS, NOTAS PENDIENTES Y SEGUIMIENTO (4 cols) -->
         <div class="lg:col-span-4 space-y-6">
             
-            <!-- ACCESOS RÁPIDOS CLÍNICOS -->
+            <!-- ACCESOS RÁPIDOS REALES -->
             <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft">
                 <h3 class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted mb-4">
                     Accesos Rápidos
@@ -511,7 +380,7 @@
                             </div>
                             <div>
                                 <span class="text-sm font-bold text-sicaps-text block group-hover:text-sicaps-primary transition">Historias Clínicas</span>
-                                <span class="text-[11px] text-sicaps-muted">Búsqueda rápida de expedientes</span>
+                                <span class="text-[11px] text-sicaps-muted">Expedientes y evoluciones SOAP</span>
                             </div>
                         </div>
                         <span class="text-xs text-sicaps-muted group-hover:translate-x-1 transition">→</span>
@@ -519,84 +388,85 @@
                 </div>
             </div>
 
-            <!-- NOTAS DE EVOLUCIÓN PENDIENTES -->
+            <!-- NOTAS DE EVOLUCIÓN PENDIENTES (REAL) -->
             <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">
                         Notas Pendientes (SOAP)
                     </h3>
-                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-sicaps-warning-soft text-sicaps-warning">
-                        3 por cerrar
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-sicaps-sand-light text-sicaps-muted">
+                        {{ count($completedAppointments) }} atendidas
                     </span>
                 </div>
 
-                <div class="space-y-3">
-                    <div class="p-3 rounded-lg bg-sicaps-sand-light/40 border border-sicaps-border/70">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h4 class="text-sm font-bold text-sicaps-text">Sofía Martínez</h4>
-                                <p class="text-xs text-sicaps-muted">Sesión de ayer • 04:00 PM</p>
+                @if(count($completedAppointments) > 0)
+                    <div class="space-y-3">
+                        @foreach(array_slice($completedAppointments, 0, 3) as $cApp)
+                            @php
+                                $cpName = ($cApp['patient']['user']['name'] ?? '') . ' ' . ($cApp['patient']['user']['lastName'] ?? '');
+                            @endphp
+                            <div class="p-3 rounded-lg bg-sicaps-sand-light/40 border border-sicaps-border/70">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <h4 class="text-sm font-bold text-sicaps-text">{{ $cpName ?: 'Paciente Atendido' }}</h4>
+                                        <p class="text-xs text-sicaps-muted">{{ $cApp['date'] }} • {{ substr($cApp['time'], 0, 5) }}</p>
+                                    </div>
+                                    <span class="text-[11px] text-sicaps-primary font-semibold">Atendida</span>
+                                </div>
+                                <div class="mt-2.5 flex justify-end">
+                                    <a href="{{ route('clinical.evolutions.create', $cApp['patient']['id'] ?? 0) }}" class="text-xs font-semibold text-sicaps-primary hover:text-sicaps-primary-hover hover:underline">
+                                        Redactar evolución SOAP →
+                                    </a>
+                                </div>
                             </div>
-                            <span class="text-[11px] text-sicaps-warning font-semibold">TCC #5</span>
-                        </div>
-                        <div class="mt-2.5 flex justify-end">
-                            <a href="{{ route('clinical.index') }}" class="text-xs font-semibold text-sicaps-primary hover:text-sicaps-primary-hover hover:underline">
-                                Redactar nota →
-                            </a>
-                        </div>
+                        @endforeach
                     </div>
-
-                    <div class="p-3 rounded-lg bg-sicaps-sand-light/40 border border-sicaps-border/70">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h4 class="text-sm font-bold text-sicaps-text">Javier Ortiz Morales</h4>
-                                <p class="text-xs text-sicaps-muted">Sesión del 12 Oct • 11:00 AM</p>
-                            </div>
-                            <span class="text-[11px] text-sicaps-warning font-semibold">Control</span>
-                        </div>
-                        <div class="mt-2.5 flex justify-end">
-                            <a href="{{ route('clinical.index') }}" class="text-xs font-semibold text-sicaps-primary hover:text-sicaps-primary-hover hover:underline">
-                                Redactar nota →
-                            </a>
-                        </div>
+                @else
+                    <div class="p-4 rounded-lg bg-sicaps-bg border border-sicaps-border/70 text-center">
+                        <p class="text-xs text-sicaps-muted leading-relaxed">
+                            No tienes notas clínicas pendientes por redactar en este momento.
+                        </p>
                     </div>
-                </div>
+                @endif
             </div>
 
-            <!-- SEGUIMIENTO: PACIENTES SIN CITA RECIENTE -->
+            <!-- CONTINUIDAD Y BIENESTAR (REAL) -->
             <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">
                         Continuidad y Bienestar
                     </h3>
-                    <span class="text-[11px] text-sicaps-muted font-medium">Preventivo</span>
+                    <span class="text-[11px] text-sicaps-muted font-medium">Seguimiento</span>
                 </div>
 
-                <p class="text-xs text-sicaps-muted mb-3 leading-relaxed">
-                    Pacientes con tratamiento activo que llevan más de 20 días sin agendar sesión de seguimiento:
-                </p>
-
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between py-2 border-b border-sicaps-border/50 text-xs">
-                        <div>
-                            <span class="font-bold text-sicaps-text block">Camila Restrepo</span>
-                            <span class="text-sicaps-muted text-[11px]">Última sesión: hace 22 días</span>
-                        </div>
-                        <a href="{{ route('appointments.create') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover">
-                            Contactar
-                        </a>
+                @if($totalPatients > 0)
+                    <p class="text-xs text-sicaps-muted mb-3 leading-relaxed">
+                        Pacientes en seguimiento en el centro:
+                    </p>
+                    <div class="space-y-2">
+                        @foreach(array_slice($patients, 0, 3) as $pat)
+                            @php
+                                $patName = ($pat['user']['name'] ?? '') . ' ' . ($pat['user']['lastName'] ?? '');
+                                $patDoc = ($pat['user']['documentType'] ?? 'CC') . ': ' . ($pat['user']['documentNumber'] ?? '');
+                            @endphp
+                            <div class="flex items-center justify-between py-2 border-b border-sicaps-border/50 text-xs">
+                                <div>
+                                    <span class="font-bold text-sicaps-text block">{{ $patName }}</span>
+                                    <span class="text-sicaps-muted text-[11px]">{{ $patDoc }}</span>
+                                </div>
+                                <a href="{{ route('patients.show', $pat['id'] ?? 0) }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover">
+                                    Ver Ficha
+                                </a>
+                            </div>
+                        @endforeach
                     </div>
-
-                    <div class="flex items-center justify-between py-2 text-xs">
-                        <div>
-                            <span class="font-bold text-sicaps-text block">Mateo Benítez</span>
-                            <span class="text-sicaps-muted text-[11px]">Última sesión: hace 28 días</span>
-                        </div>
-                        <a href="{{ route('appointments.create') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover">
-                            Contactar
-                        </a>
+                @else
+                    <div class="p-4 rounded-lg bg-sicaps-bg border border-sicaps-border/70 text-center">
+                        <p class="text-xs text-sicaps-muted leading-relaxed">
+                            Todos tus pacientes se encuentran con seguimiento al día.
+                        </p>
                     </div>
-                </div>
+                @endif
             </div>
 
         </div>

@@ -85,10 +85,13 @@
 <body class="h-full flex overflow-hidden text-sicaps-text bg-sicaps-bg"
       x-data="{ 
           sidebarOpen: false, 
-          notificationsOpen: false,
           userMenuOpen: false,
           inactivityWarning: false,
           lastActivity: Date.now(),
+          toastOpen: {{ (session('appointment_assigned') || session('success') || session('error')) ? 'true' : 'false' }},
+          toastTitle: '{{ session('appointment_assigned') ? 'Nueva Cita Asignada' : (session('success') ? 'Operación Exitosa' : (session('error') ? 'Atención' : '')) }}',
+          toastMsg: '{{ session('appointment_assigned') ? session('appointment_assigned') : (session('success') ?? session('error') ?? '') }}',
+          toastType: '{{ session('error') ? 'danger' : 'success' }}',
           resetInactivity() {
               this.lastActivity = Date.now();
               this.inactivityWarning = false;
@@ -96,8 +99,10 @@
       }"
       @mousemove.window.debounce.500ms="resetInactivity()"
       @keydown.window.debounce.500ms="resetInactivity()"
-      @click.window="notificationsOpen = false; userMenuOpen = false;"
+      @click.window="userMenuOpen = false;"
+      @toast.window="toastTitle = $event.detail.title || 'Aviso'; toastMsg = $event.detail.msg; toastType = $event.detail.type || 'success'; toastOpen = true; setTimeout(() => toastOpen = false, 6000);"
       x-init="
+          if (toastOpen) { setTimeout(() => toastOpen = false, 6000); }
           setInterval(() => {
               const inactiveTime = Date.now() - lastActivity;
               // Aviso a los 14 minutos (840,000 ms)
@@ -305,50 +310,7 @@
                            class="w-full pl-9 pr-4 py-2 bg-sicaps-sand-light/50 border border-sicaps-border/70 rounded-full text-xs text-sicaps-text placeholder-sicaps-muted/70 focus:bg-white focus:border-sicaps-primary focus:ring-1 focus:ring-sicaps-primary transition-all duration-200">
                 </div>
 
-                <!-- Notificaciones con Dropdown -->
-                <div class="relative" @click.stop>
-                    <button @click="notificationsOpen = !notificationsOpen" 
-                            class="relative p-2.5 rounded-full text-sicaps-muted hover:text-sicaps-text hover:bg-sicaps-sand-light/60 transition-colors focus:outline-none"
-                            aria-label="Ver notificaciones">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                        </svg>
-                        <!-- Punto rojo de notificación pendiente -->
-                        <span class="absolute top-2 right-2 w-2 h-2 bg-sicaps-danger rounded-full ring-2 ring-white"></span>
-                    </button>
 
-                    <!-- Popover de Notificaciones -->
-                    <div x-show="notificationsOpen"
-                         x-cloak
-                         x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-100"
-                         x-transition:leave-start="opacity-100 scale-100"
-                         x-transition:leave-end="opacity-0 scale-95"
-                         class="absolute right-0 mt-2 w-80 bg-sicaps-surface rounded-2xl shadow-dropdown border border-sicaps-border p-4 z-50">
-                        <div class="flex items-center justify-between pb-3 border-b border-sicaps-border/50">
-                            <h4 class="text-xs font-bold text-sicaps-text uppercase tracking-wider">Avisos Clínicos</h4>
-                            <span class="text-[10px] bg-sicaps-primary-soft text-sicaps-primary font-semibold px-2 py-0.5 rounded-full">2 Nuevos</span>
-                        </div>
-                        <div class="mt-3 space-y-2.5 text-xs">
-                            <div class="p-2.5 rounded-xl bg-sicaps-warning-soft/50 border border-sicaps-warning/20 flex space-x-3">
-                                <span class="text-sicaps-warning text-sm">📝</span>
-                                <div>
-                                    <p class="font-semibold text-sicaps-text">Notas de evolución pendientes</p>
-                                    <p class="text-sicaps-muted text-[11px] mt-0.5">3 pacientes esperan registro de sesión de hoy.</p>
-                                </div>
-                            </div>
-                            <div class="p-2.5 rounded-xl bg-sicaps-info-soft/50 border border-sicaps-info/20 flex space-x-3">
-                                <span class="text-sicaps-info text-sm">⏱️</span>
-                                <div>
-                                    <p class="font-semibold text-sicaps-text">Próxima cita en 30 min</p>
-                                    <p class="text-sicaps-muted text-[11px] mt-0.5">Laura Rojas (Ansiedad generalizada - Presencial).</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Avatar superior con iniciales -->
                 <div class="relative" @click.stop>
@@ -437,6 +399,35 @@
                     Continuar conectado
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICACIÓN EMERGENTE FLOTANTE (TOAST DISCRETO EN LA PARTE INFERIOR) -->
+    <div x-show="toastOpen" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-300 transform"
+         x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+         x-transition:leave="transition ease-in duration-200 transform"
+         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+         class="fixed bottom-6 right-6 z-50 max-w-sm w-full sm:w-auto"
+         role="status"
+         aria-live="polite">
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-dropdown border border-sicaps-border flex items-start gap-3 text-left">
+            <div :class="toastType === 'danger' ? 'bg-sicaps-danger-soft text-sicaps-danger' : 'bg-sicaps-primary-soft text-sicaps-primary'" 
+                 class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.253M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 9v7.5"/>
+                </svg>
+            </div>
+            <div class="flex-1 pr-2">
+                <p class="text-xs font-bold text-sicaps-text" x-text="toastTitle || 'Notificación'"></p>
+                <p class="text-[11px] text-sicaps-muted mt-0.5 leading-relaxed" x-text="toastMsg"></p>
+            </div>
+            <button @click="toastOpen = false" class="text-sicaps-muted hover:text-sicaps-text p-1 text-base leading-none font-bold ml-1 transition" title="Cerrar">
+                &times;
+            </button>
         </div>
     </div>
 

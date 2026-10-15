@@ -25,14 +25,18 @@ class AppointmentController extends Controller
             $response = Http::withHeaders($this->getHeaders())
                 ->get($this->getApiUrl() . '/appointments');
 
+            $appointments = [];
             if ($response->successful()) {
                 $appointments = $response->json('data') ?? [];
-                return view('appointments.index', compact('appointments'));
+            } else {
+                \Illuminate\Support\Facades\Log::warning('Error cargando citas: ' . $response->status() . ' - ' . $response->body());
             }
             
-            return back()->with('error', 'No se pudieron cargar las citas.');
+            return view('appointments.index', compact('appointments'));
         } catch (\Exception $e) {
-            return back()->with('error', 'Error de conexión con el backend.');
+            \Illuminate\Support\Facades\Log::error('Excepción conectando con backend en citas: ' . $e->getMessage());
+            $appointments = [];
+            return view('appointments.index', compact('appointments'));
         }
     }
 
@@ -66,7 +70,9 @@ class AppointmentController extends Controller
                 ]);
 
             if ($response->successful()) {
-                return redirect()->route('appointments.index')->with('success', 'Cita agendada exitosamente.');
+                return redirect()->route('appointments.index')
+                    ->with('success', 'Cita agendada exitosamente.')
+                    ->with('appointment_assigned', 'Se ha programado una nueva cita en la agenda del profesional.');
             }
             
             $msg = $response->json('message') ?? 'Error desconocido';

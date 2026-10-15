@@ -28,14 +28,14 @@ Route::middleware(['web'])->group(function () {
                 $res = \Illuminate\Support\Facades\Http::withHeaders([
                     'Authorization' => 'Bearer ' . $token,
                     'Accept' => 'application/json'
-                ])->timeout(2)->get($apiUrl . '/appointments');
+                ])->timeout(4)->get($apiUrl . '/appointments');
                 if ($res->successful()) {
                     $appointments = $res->json('data') ?? [];
                 }
                 $pRes = \Illuminate\Support\Facades\Http::withHeaders([
                     'Authorization' => 'Bearer ' . $token,
                     'Accept' => 'application/json'
-                ])->timeout(2)->get($apiUrl . '/patients');
+                ])->timeout(4)->get($apiUrl . '/patients');
                 if ($pRes->successful()) {
                     $patients = $pRes->json('data') ?? [];
                 }
@@ -43,10 +43,17 @@ Route::middleware(['web'])->group(function () {
                 // Silencioso para no romper la experiencia si el backend tarda
             }
         }
+
+        $today = date('Y-m-d');
+        $todayAppointments = array_values(array_filter($appointments, function($a) use ($today) {
+            return ($a['date'] ?? '') === $today;
+        }));
+
         return view('dashboard', [
-            'name' => session('user_name', 'Dra. Camila'),
+            'name' => session('user_name', 'Profesional'),
             'role' => session('user_role', 'ROLE_ADMIN'),
             'appointments' => $appointments,
+            'todayAppointments' => $todayAppointments,
             'patients' => $patients,
         ]);
     })->name('dashboard');

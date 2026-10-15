@@ -58,12 +58,16 @@
                         required 
                         class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
                     >
-                        <option value="">Seleccione un paciente de la lista...</option>
-                        @foreach($patients as $patient)
-                            <option value="{{ $patient['id'] }}" {{ old('patientId') == $patient['id'] ? 'selected' : '' }}>
-                                {{ $patient['user']['name'] ?? '' }} {{ $patient['user']['lastName'] ?? '' }} — {{ $patient['user']['documentType'] ?? 'CC' }}: {{ $patient['user']['documentNumber'] ?? '' }}
-                            </option>
-                        @endforeach
+                        @if(empty($patients) || count($patients) === 0)
+                            <option value="">No hay pacientes registrados aún</option>
+                        @else
+                            <option value="">Seleccione un paciente de la lista...</option>
+                            @foreach($patients as $patient)
+                                <option value="{{ $patient['id'] ?? '' }}" {{ old('patientId') == ($patient['id'] ?? '') ? 'selected' : '' }}>
+                                    {{ $patient['user']['name'] ?? '' }} {{ $patient['user']['lastName'] ?? '' }} — {{ $patient['user']['documentType'] ?? 'CC' }}: {{ $patient['user']['documentNumber'] ?? '' }}
+                                </option>
+                            @endforeach
+                        @endif
                     </select>
                 </div>
 
@@ -78,11 +82,11 @@
                         class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
                     >
                         @if(empty($professionals) || count($professionals) === 0)
-                            <option value="1">Dra. Camila Santos (Psicología Clínica y TCC)</option>
+                            <option value="1">Dra. María Gómez (Psicología Clínica)</option>
                         @else
                             <option value="">Seleccione un especialista...</option>
                             @foreach($professionals as $prof)
-                                <option value="{{ $prof['id'] }}" {{ old('professionalId') == $prof['id'] ? 'selected' : '' }}>
+                                <option value="{{ $prof['id'] ?? 1 }}" {{ old('professionalId') == ($prof['id'] ?? '') ? 'selected' : '' }}>
                                     {{ $prof['user']['name'] ?? 'Dr.' }} {{ $prof['user']['lastName'] ?? '' }} ({{ $prof['specialty'] ?? 'Psicología' }})
                                 </option>
                             @endforeach
