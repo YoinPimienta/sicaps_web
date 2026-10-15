@@ -2,16 +2,19 @@ package com.sicaps.backend.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
-import java.net.URI;
 
 @Configuration
 public class DataSourceConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(DataSourceConfig.class);
 
     @Value("${spring.datasource.url:jdbc:postgresql://localhost:5432/sicaps_db}")
     private String defaultUrl;
@@ -33,6 +36,17 @@ public class DataSourceConfig {
             dbUrl = defaultUrl;
         }
 
+        // Si estamos en la nube (Render o Railway) y la URL apunta a localhost, avisar con un error claro
+        boolean isCloud = System.getenv("RENDER") != null || System.getenv("RAILWAY_ENVIRONMENT") != null;
+        if (isCloud && dbUrl.contains("localhost:5432")) {
+            log.error("=================================================================================");
+            log.error("❌ ERROR CRÍTICO: No se ha configurado la variable DATABASE_URL en Render.");
+            log.error("👉 Ve a tu servicio en Render -> pestaña 'Environment' -> añade la variable:");
+            log.error("   DATABASE_URL = (tu enlace de conexión de Neon PostgreSQL)");
+            log.error("=================================================================================");
+            throw new IllegalStateException("DATABASE_URL no configurada en Render. Debes agregar la variable DATABASE_URL en la pestaña Environment de Render con tu URL de Neon.");
+        }
+
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("org.postgresql.Driver");
         config.setMaximumPoolSize(10);
@@ -41,39 +55,23 @@ public class DataSourceConfig {
         config.setConnectionTimeout(20000);
         config.setMaxLifetime(1200000);
 
-        // Check if database URL is in standard postgres:// or postgresql:// format (from Neon, Render, Railway, Supabase)
-        if (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://")) {
-            try {
-                URI uri = new URI(dbUrl);
-                String userInfo = uri.getUserInfo();
-                String username = defaultUsername;
-                String password = defaultPassword;
-
-                if (userInfo != null && userInfo.contains(":")) {
-                    String[] parts = userInfo.split(":", 2);
-                    username = parts[0];
-                    password = parts[1];
-                }
-
-                String host = uri.getHost();
-                int port = uri.getPort() == -1 ? 5432 : uri.getPort();
-                String path = uri.getPath();
-                String query = uri.getQuery();
-
-                String jdbcUrl = "jdbc:postgresql://" + host + ":" + port + path + (query != null ? "?" + query : "");
-                config.setJdbcUrl(jdbcUrl);
-                config.setUsername(username);
-                config.setPassword(password);
-            } catch (Exception e) {
-                config.setJdbcUrl(dbUrl);
-                config.setUsername(defaultUsername);
-                config.setPassword(defaultPassword);
-            }
+        // Convertir URL estándar de PostgreSQL (postgres:// o postgresql:// de Neon/Render) al formato JDBC
+        String jdbcUrl;
+        if (dbUrl.startsWith("postgres://")) {
+            jdbcUrl = "jdbc:postgresql://" + dbUrl.substring(11);
+        } else if (dbUrl.startsWith("postgresql://")) {
+            jdbcUrl = "jdbc:postgresql://" + dbUrl.substring(13);
         } else {
-            // Already standard JDBC or local DB_URL
-            config.setJdbcUrl(dbUrl);
-            String envUser = System.getenv("DB_USERNAME");
-            String envPass = System.getenv("DB_PASSWORD");
+            jdbcUrl = dbUrl;
+        }
+
+        log.info("Iniciando conexión a base de datos PostgreSQL...");
+        config.setJdbcUrl(jdbcUrl);
+
+        // Si la URL no contiene credenciales embebidas (user:pass@), aplicar las variables de entorno
+        String envUser = System.getenv("DB_USERNAME");
+        String envPass = System.getenv("DB_PASSWORD");
+        if (!jdbcUrl.contains("@")) {
             config.setUsername(envUser != null && !envUser.isBlank() ? envUser : defaultUsername);
             config.setPassword(envPass != null && !envPass.isBlank() ? envPass : defaultPassword);
         }
