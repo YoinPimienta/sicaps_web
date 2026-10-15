@@ -1,0 +1,32 @@
+services:
+  # Backend: API Java Spring Boot
+  - type: web
+    name: sicaps-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SHOW_SQL
+        value: "false"
+      - key: DATABASE_URL
+        sync: false # Pega aquí tu URL de Neon PostgreSQL
+
+  # Frontend: PHP Laravel
+  - type: web
+    name: sicaps-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: API_BASE_URL
+        sync: false # Pega aquí la URL pública de tu sicaps-backend + /api (Ej: https://sicaps-backend.onrender.com/api)

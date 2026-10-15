@@ -1,0 +1,37 @@
+# OS & IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Java / Maven
+backend/target/
+backend/.mvn/
+*.class
+
+# PHP / Laravel
+frontend/vendor/
+frontend/.env
+frontend/storage/*.key
+frontend/storage/framework/cache/data/*
+frontend/storage/framework/sessions/*
+frontend/storage/framework/views/*
+frontend/storage/logs/*
+!frontend/storage/framework/cache/.gitignore
+!frontend/storage/framework/sessions/.gitignore
+!frontend/storage/framework/views/.gitignore
+!frontend/storage/logs/.gitignore
+
+# Node / NPM
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Temp / Logs
+*.log
+*.tmp

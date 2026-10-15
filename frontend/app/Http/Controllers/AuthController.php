@@ -1,0 +1,99 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Session;
+
+class AuthController
+{
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        $apiUrl = config('services.backend.api_url', env('API_BASE_URL', 'http://backend:8080/api'));
+
+        try {
+            $response = Http::post($apiUrl . '/auth/login', [
+                'email' => $request->email,
+                'password' => $request->password,
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                // Guardamos el token JWT y los datos básicos en la sesión de Laravel
+                Session::put('jwt_token', $data['token']);
+                Session::put('user_email', $data['email']);
+                Session::put('user_role', $data['role']);
+                Session::put('user_name', $data['name']);
+                
+                return redirect()->intended('/dashboard');
+            }
+
+            return back()->withErrors([
+                'email' => 'Las credenciales proporcionadas no son válidas o el usuario está inactivo.',
+            ])->onlyInput('email');
+
+        } catch (\Exception $e) {
+            return back()->withErrors([
+                'email' => 'Error de conexión con el servidor de autenticación.',
+            ]);
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        Session::flush();
+        return redirect('/login');
+    }
+
+    public function showRegisterForm()
+    {
+        return view('auth.register');
+    }
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'lastName' => 'required',
+            'documentType' => 'required',
+            'documentNumber' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:6'
+        ]);
+
+        $apiUrl = config('services.backend.api_url', env('API_BASE_URL', 'http://backend:8080/api'));
+
+        try {
+            $response = Http::post($apiUrl . '/auth/register', [
+                'name' => $request->name,
+                'lastName' => $request->lastName,
+                'documentType' => $request->documentType,
+                'documentNumber' => $request->documentNumber,
+                'email' => $request->email,
+                'password' => $request->password,
+            ]);
+
+            if ($response->successful()) {
+                return redirect('/login')->with('success', 'Registro exitoso. Ya puedes iniciar sesión.');
+            }
+
+            $errorMsg = $response->json('message') ?? 'Error en el registro';
+            return back()->withErrors(['email' => $errorMsg])->withInput();
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['email' => 'Error de conexión con el servidor.'])->withInput();
+        }
+    }
+}
