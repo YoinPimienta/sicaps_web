@@ -69,4 +69,9 @@ public class ProfessionalService {
     public List<Professional> getAllProfessionals() {
         return professionalRepository.findAll();
     }
+
+    public Professional getProfessionalById(Long id) {
+        return professionalRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Profesional no encontrado con ID: " + id));
+    }
 }

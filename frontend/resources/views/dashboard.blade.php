@@ -385,6 +385,24 @@
                         </div>
                         <span class="text-xs text-sicaps-muted group-hover:translate-x-1 transition">→</span>
                     </a>
+
+                    @if(session('user_role') === 'ROLE_ADMIN')
+                    <a 
+                        href="{{ route('professionals.create') }}" 
+                        class="flex items-center justify-between p-3 rounded-[10px] border border-sicaps-primary/30 bg-sicaps-primary-soft/40 hover:bg-sicaps-primary-soft/80 transition group"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-sicaps-primary text-white flex items-center justify-center group-hover:scale-105 transition shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                            </div>
+                            <div>
+                                <span class="text-sm font-bold text-sicaps-text block group-hover:text-sicaps-primary transition">Habilitar Profesional</span>
+                                <span class="text-[11px] text-sicaps-muted">Alta y credenciales de especialista</span>
+                            </div>
+                        </div>
+                        <span class="text-xs text-sicaps-primary group-hover:translate-x-1 transition font-bold">→</span>
+                    </a>
+                    @endif
                 </div>
             </div>
 

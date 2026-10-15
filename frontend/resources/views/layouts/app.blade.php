@@ -215,6 +215,21 @@
                 </svg>
                 <span>Historias Clínicas</span>
             </a>
+
+            <!-- Profesionales / Equipo Clínico -->
+            <a href="{{ route('professionals.index') }}" 
+               class="relative flex items-center px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 {{ request()->routeIs('professionals.*') ? 'bg-sicaps-primary-soft text-sicaps-primary font-semibold' : 'text-sicaps-muted hover:text-sicaps-text hover:bg-sicaps-sand-light/60' }}">
+                @if(request()->routeIs('professionals.*'))
+                    <span class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-sicaps-primary rounded-r-full"></span>
+                @endif
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('professionals.*') ? 'text-sicaps-primary' : 'text-sicaps-muted/80' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                </svg>
+                <span class="flex-1">Profesionales</span>
+                @if(session('user_role') === 'ROLE_ADMIN')
+                    <span class="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-sicaps-primary/10 text-sicaps-primary">Admin</span>
+                @endif
+            </a>
         </nav>
 
         <!-- Bloque inferior: Perfil del profesional y Cerrar sesión discreto -->

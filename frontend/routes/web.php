@@ -86,4 +86,7 @@ Route::middleware(['web', 'auth.jwt'])->group(function () {
     Route::get('clinical', [\App\Http\Controllers\ClinicalController::class, 'index'])->name('clinical.index');
     Route::get('clinical/evolutions/create/{patient}', [\App\Http\Controllers\ClinicalController::class, 'createEvolution'])->name('clinical.evolutions.create');
     Route::post('clinical/evolutions/{patient}', [\App\Http\Controllers\ClinicalController::class, 'storeEvolution'])->name('clinical.evolutions.store');
+
+    // Módulo de Profesionales (Equipo Clínico)
+    Route::resource('professionals', \App\Http\Controllers\ProfessionalController::class);
 });

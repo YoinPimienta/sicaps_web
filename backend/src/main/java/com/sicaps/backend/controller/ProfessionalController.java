@@ -42,4 +42,19 @@ public class ProfessionalController {
         response.put("data", professionalService.getAllProfessionals());
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getProfessionalById(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Professional prof = professionalService.getProfessionalById(id);
+            response.put("success", true);
+            response.put("data", prof);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
 }
