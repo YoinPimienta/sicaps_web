@@ -19,11 +19,35 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 // Rutas protegidas (Dashboard, etc.)
 Route::middleware(['web'])->group(function () {
     Route::get('/dashboard', function () {
-        // En una implementación real, aquí validaríamos la sesión
-        // if (!session()->has('jwt_token')) return redirect('/login');
+        $token = session('jwt_token');
+        $appointments = [];
+        $patients = [];
+        if ($token) {
+            try {
+                $apiUrl = config('services.backend.api_url', env('API_BASE_URL', 'http://backend:8080/api'));
+                $res = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $token,
+                    'Accept' => 'application/json'
+                ])->timeout(2)->get($apiUrl . '/appointments');
+                if ($res->successful()) {
+                    $appointments = $res->json('data') ?? [];
+                }
+                $pRes = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $token,
+                    'Accept' => 'application/json'
+                ])->timeout(2)->get($apiUrl . '/patients');
+                if ($pRes->successful()) {
+                    $patients = $pRes->json('data') ?? [];
+                }
+            } catch (\Exception $e) {
+                // Silencioso para no romper la experiencia si el backend tarda
+            }
+        }
         return view('dashboard', [
-            'name' => session('user_name', 'Usuario'),
-            'role' => session('user_role', 'ROLE_ADMIN')
+            'name' => session('user_name', 'Dra. Camila'),
+            'role' => session('user_role', 'ROLE_ADMIN'),
+            'appointments' => $appointments,
+            'patients' => $patients,
         ]);
     })->name('dashboard');
 

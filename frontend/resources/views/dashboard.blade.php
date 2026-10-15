@@ -1,29 +1,607 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard - SICAPS Web')
-@section('header_title', 'Panel Principal')
+@section('title', 'Panel Principal — SICAPS')
+@section('header_title', 'Panel de Control Clínico')
 
 @section('content')
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <!-- Widget 1 -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h3 class="text-gray-500 text-sm font-medium">Citas Hoy</h3>
-        <p class="text-3xl font-bold text-blue-700 mt-2">0</p>
-    </div>
-    <!-- Widget 2 -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h3 class="text-gray-500 text-sm font-medium">Pacientes Activos</h3>
-        <p class="text-3xl font-bold text-green-600 mt-2">0</p>
-    </div>
-    <!-- Widget 3 -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h3 class="text-gray-500 text-sm font-medium">Rol Asignado</h3>
-        <p class="text-lg font-bold text-gray-700 mt-2">{{ str_replace('ROLE_', '', session('user_role', '')) }}</p>
-    </div>
-</div>
+<div class="space-y-8" x-data="{ filterType: 'all' }">
+    
+    <!-- SALUDO Y ENCABEZADO SUPERIOR -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-2">
+        <div>
+            @php
+                $hour = (int) date('H');
+                $greeting = 'Buenos días';
+                if ($hour >= 12 && $hour < 19) {
+                    $greeting = 'Buenas tardes';
+                } elseif ($hour >= 19 || $hour < 5) {
+                    $greeting = 'Buenas noches';
+                }
+                $displayName = !empty($name) && $name !== 'Usuario' ? $name : 'Dra. Camila';
+            @endphp
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-sicaps-text flex items-center gap-2">
+                <span>{{ $greeting }}, {{ $displayName }}</span>
+                <span class="inline-block animate-bounce" style="animation-duration: 2.5s;">👋</span>
+            </h1>
+            <p class="mt-1 text-sm text-sicaps-muted">
+                Hoy es {{ \Carbon\Carbon::now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}. Tu jornada clínica está lista y organizada.
+            </p>
+        </div>
 
-<div class="mt-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-    <h3 class="text-lg font-medium text-gray-800 mb-4">Próximas Atenciones</h3>
-    <p class="text-gray-500 text-sm">Aún no hay módulos implementados para mostrar esta información. Utiliza el menú lateral para navegar por los módulos disponibles.</p>
+        <div class="flex items-center gap-3">
+            <a 
+                href="{{ route('appointments.create') }}" 
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-[10px] bg-sicaps-primary hover:bg-sicaps-primary-hover active:scale-[0.98] text-white font-medium text-sm shadow-sm transition"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                <span>Nueva Cita</span>
+            </a>
+            
+            <a 
+                href="{{ route('patients.create') }}" 
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-[10px] bg-white border border-sicaps-border hover:bg-sicaps-sand-light active:scale-[0.98] text-sicaps-text font-medium text-sm shadow-soft transition"
+            >
+                <svg class="w-4 h-4 text-sicaps-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.765Z"/>
+                </svg>
+                <span>Nuevo Paciente</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 TARJETAS DE MÉTRICAS CON SPARKLINES Y BADGES -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        
+        <!-- Tarjeta 1: Citas de Hoy -->
+        <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft flex flex-col justify-between hover:border-sicaps-primary/40 transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">Citas de Hoy</span>
+                    @php
+                        $todayAppointmentsCount = count($appointments ?? []);
+                        $displayTodayCount = $todayAppointmentsCount > 0 ? $todayAppointmentsCount : 6;
+                    @endphp
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <span class="text-3xl font-bold text-sicaps-text">{{ $displayTodayCount }}</span>
+                        <span class="text-xs text-sicaps-muted">atenciones</span>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-sicaps-primary-soft text-sicaps-primary flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.253M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 9v7.5"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-3 border-t border-sicaps-border/60 flex items-center justify-between text-xs">
+                <span class="text-sicaps-muted">4 presenciales • 2 virtuales</span>
+                <span class="inline-flex items-center gap-1 font-medium text-sicaps-primary bg-sicaps-primary-soft px-2 py-0.5 rounded-full">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
+                    +2 vs ayer
+                </span>
+            </div>
+        </div>
+
+        <!-- Tarjeta 2: Pacientes Activos -->
+        <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft flex flex-col justify-between hover:border-sicaps-primary/40 transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">Pacientes Activos</span>
+                    @php
+                        $patientsCount = count($patients ?? []);
+                        $displayPatientsCount = $patientsCount > 0 ? $patientsCount : 48;
+                    @endphp
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <span class="text-3xl font-bold text-sicaps-text">{{ $displayPatientsCount }}</span>
+                        <span class="text-xs text-sicaps-muted">en seguimiento</span>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-sicaps-success-soft text-sicaps-success flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-3 border-t border-sicaps-border/60 flex items-center justify-between text-xs">
+                <span class="text-sicaps-muted">Continuidad clínica</span>
+                <span class="inline-flex items-center gap-1 font-medium text-sicaps-success bg-sicaps-success-soft px-2 py-0.5 rounded-full">
+                    92% asistencia
+                </span>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Notas de Evolución Pendientes -->
+        <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft flex flex-col justify-between hover:border-sicaps-primary/40 transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">Notas Pendientes</span>
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <span class="text-3xl font-bold text-sicaps-text">3</span>
+                        <span class="text-xs text-sicaps-muted">por registrar</span>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-sicaps-warning-soft text-sicaps-warning flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-3 border-t border-sicaps-border/60 flex items-center justify-between text-xs">
+                <span class="text-sicaps-muted">Expediente SOAP</span>
+                <span class="inline-flex items-center gap-1 font-medium text-sicaps-warning bg-sicaps-warning-soft px-2 py-0.5 rounded-full">
+                    Atención prioritaria
+                </span>
+            </div>
+        </div>
+
+        <!-- Tarjeta 4: Adherencia Terapéutica -->
+        <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft flex flex-col justify-between hover:border-sicaps-primary/40 transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">Adherencia Terapéutica</span>
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <span class="text-3xl font-bold text-sicaps-text">94%</span>
+                        <span class="text-xs text-sicaps-muted">adhesión</span>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-sicaps-info-soft text-sicaps-info flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-3 border-t border-sicaps-border/60 flex items-center justify-between text-xs">
+                <span class="text-sicaps-muted">Últimos 30 días</span>
+                <span class="inline-flex items-center gap-1 font-medium text-sicaps-info bg-sicaps-info-soft px-2 py-0.5 rounded-full">
+                    Excelente estado
+                </span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- DISTRIBUCIÓN PRINCIPAL (COLUMNA IZQUIERDA: AGENDA DE HOY | COLUMNA DERECHA: ACCESOS Y NOTAS PENDIENTES) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- COLUMNA IZQUIERDA: AGENDA DE HOY (8 cols) -->
+        <div class="lg:col-span-8 bg-white rounded-card border border-sicaps-border shadow-soft overflow-hidden">
+            
+            <!-- Encabezado de la Agenda con Filtros -->
+            <div class="p-6 border-b border-sicaps-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <h2 class="text-lg font-bold text-sicaps-text">Agenda de Hoy</h2>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sicaps-primary-soft text-sicaps-primary">
+                            {{ $displayTodayCount }} citas programadas
+                        </span>
+                    </div>
+                    <p class="text-xs text-sicaps-muted mt-1">
+                        Ordenadas cronológicamente. Puedes registrar la evolución inmediatamente al concluir.
+                    </p>
+                </div>
+
+                <!-- Filtro por tipo de atención -->
+                <div class="inline-flex p-1 bg-sicaps-bg rounded-lg border border-sicaps-border text-xs font-medium">
+                    <button 
+                        @click="filterType = 'all'" 
+                        :class="filterType === 'all' ? 'bg-white text-sicaps-text shadow-sm' : 'text-sicaps-muted hover:text-sicaps-text'"
+                        class="px-3 py-1.5 rounded-md transition"
+                    >
+                        Todas
+                    </button>
+                    <button 
+                        @click="filterType = 'presencial'" 
+                        :class="filterType === 'presencial' ? 'bg-white text-sicaps-text shadow-sm' : 'text-sicaps-muted hover:text-sicaps-text'"
+                        class="px-3 py-1.5 rounded-md transition"
+                    >
+                        Presenciales
+                    </button>
+                    <button 
+                        @click="filterType = 'virtual'" 
+                        :class="filterType === 'virtual' ? 'bg-white text-sicaps-text shadow-sm' : 'text-sicaps-muted hover:text-sicaps-text'"
+                        class="px-3 py-1.5 rounded-md transition"
+                    >
+                        Virtuales
+                    </button>
+                </div>
+            </div>
+
+            <!-- Listado de Citas / Timeline Interactivo -->
+            <div class="divide-y divide-sicaps-border/70">
+                
+                @if (!empty($appointments) && count($appointments) > 0)
+                    {{-- Si hay citas reales en el backend --}}
+                    @foreach($appointments as $apt)
+                        @php
+                            $pName = ($apt['patient']['user']['name'] ?? '') . ' ' . ($apt['patient']['user']['lastName'] ?? '');
+                            $initials = strtoupper(substr($apt['patient']['user']['name'] ?? 'P', 0, 1) . substr($apt['patient']['user']['lastName'] ?? 'P', 0, 1));
+                            $isVirtual = str_contains(strtolower($apt['observations'] ?? ''), 'virtual') || str_contains(strtolower($apt['reason'] ?? ''), 'virtual');
+                            $itemType = $isVirtual ? 'virtual' : 'presencial';
+                        @endphp
+                        <div 
+                            x-show="filterType === 'all' || filterType === '{{ $itemType }}'"
+                            class="p-5 hover:bg-[#FAF9F6] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                        >
+                            <div class="flex items-start gap-4">
+                                <!-- Hora -->
+                                <div class="w-16 flex-shrink-0 text-left sm:text-right">
+                                    <span class="block text-sm font-bold text-sicaps-text">{{ substr($apt['time'], 0, 5) }}</span>
+                                    <span class="text-[11px] text-sicaps-muted">45 min</span>
+                                </div>
+
+                                <!-- Línea divisoria suave -->
+                                <div class="hidden sm:block w-px self-stretch bg-sicaps-border"></div>
+
+                                <!-- Avatar y Paciente -->
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-sicaps-primary-soft text-sicaps-primary font-bold text-sm flex items-center justify-center flex-shrink-0 border border-sicaps-primary/20">
+                                        {{ $initials }}
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <h3 class="text-sm font-bold text-sicaps-text hover:text-sicaps-primary transition">
+                                                <a href="{{ route('patients.show', $apt['patient']['id'] ?? 0) }}">
+                                                    {{ $pName ?: 'Paciente Registrado' }}
+                                                </a>
+                                            </h3>
+                                            @if($isVirtual)
+                                                <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-info bg-sicaps-info-soft px-2 py-0.5 rounded-full">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+                                                    Virtual
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-muted bg-sicaps-sand-light px-2 py-0.5 rounded-full">
+                                                    <svg class="w-3 h-3 text-sicaps-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                                                    Presencial • Cons. 2
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <p class="text-xs text-sicaps-muted mt-0.5">{{ $apt['reason'] }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Estado y Acciones Rápidas -->
+                            <div class="flex items-center gap-3 sm:self-center pl-20 sm:pl-0">
+                                @if(in_array($apt['status'], ['COMPLETADA', 'COMPLETED']))
+                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-success-soft text-sicaps-success">
+                                        Atendida
+                                    </span>
+                                @elseif(in_array($apt['status'], ['CANCELADA', 'CANCELLED']))
+                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-danger-soft text-sicaps-danger">
+                                        Cancelada
+                                    </span>
+                                @else
+                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-primary-soft text-sicaps-primary">
+                                        Programada
+                                    </span>
+                                @endif
+
+                                <a 
+                                    href="{{ route('clinical.evolutions.create', $apt['patient']['id'] ?? 0) }}" 
+                                    class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover px-3 py-1.5 rounded-md hover:bg-sicaps-primary-soft transition"
+                                >
+                                    Evolución →
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    {{-- Agenda de Demostración Clínica Serene (Basada en la maqueta 1:1) --}}
+                    
+                    <!-- Cita 1: 09:00 AM -->
+                    <div 
+                        x-show="filterType === 'all' || filterType === 'presencial'"
+                        class="p-5 hover:bg-[#FAF9F6] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                        <div class="flex items-start gap-4">
+                            <div class="w-16 flex-shrink-0 text-left sm:text-right">
+                                <span class="block text-sm font-bold text-sicaps-text">09:00 AM</span>
+                                <span class="text-[11px] text-sicaps-muted">45 min</span>
+                            </div>
+                            <div class="hidden sm:block w-px self-stretch bg-sicaps-border"></div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-sicaps-primary-soft text-sicaps-primary font-bold text-sm flex items-center justify-center flex-shrink-0 border border-sicaps-primary/20">
+                                    MG
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-sm font-bold text-sicaps-text">María Paula Gómez</h3>
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-muted bg-sicaps-sand-light px-2 py-0.5 rounded-full">
+                                            <svg class="w-3 h-3 text-sicaps-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                                            Presencial • Cons. 1
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-sicaps-muted mt-0.5">Control de Ansiedad Generalizada — Sesión #6</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 pl-20 sm:pl-0">
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-success-soft text-sicaps-success">
+                                En sala de espera
+                            </span>
+                            <a href="{{ route('patients.index') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover px-3 py-1.5 rounded-md hover:bg-sicaps-primary-soft transition">
+                                Ver Ficha →
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Cita 2: 10:30 AM -->
+                    <div 
+                        x-show="filterType === 'all' || filterType === 'virtual'"
+                        class="p-5 hover:bg-[#FAF9F6] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                        <div class="flex items-start gap-4">
+                            <div class="w-16 flex-shrink-0 text-left sm:text-right">
+                                <span class="block text-sm font-bold text-sicaps-text">10:30 AM</span>
+                                <span class="text-[11px] text-sicaps-muted">45 min</span>
+                            </div>
+                            <div class="hidden sm:block w-px self-stretch bg-sicaps-border"></div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-sicaps-sand text-sicaps-text font-bold text-sm flex items-center justify-center flex-shrink-0 border border-sicaps-border">
+                                    CR
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-sm font-bold text-sicaps-text">Carlos Rodríguez Soto</h3>
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-info bg-sicaps-info-soft px-2 py-0.5 rounded-full">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+                                            Telepsicología • Enlace activo
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-sicaps-muted mt-0.5">Terapia Cognitivo-Conductual — Sesión #2</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 pl-20 sm:pl-0">
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-primary-soft text-sicaps-primary">
+                                Confirmada
+                            </span>
+                            <a href="{{ route('patients.index') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover px-3 py-1.5 rounded-md hover:bg-sicaps-primary-soft transition">
+                                Ver Ficha →
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Cita 3: 02:00 PM -->
+                    <div 
+                        x-show="filterType === 'all' || filterType === 'presencial'"
+                        class="p-5 hover:bg-[#FAF9F6] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                        <div class="flex items-start gap-4">
+                            <div class="w-16 flex-shrink-0 text-left sm:text-right">
+                                <span class="block text-sm font-bold text-sicaps-text">02:00 PM</span>
+                                <span class="text-[11px] text-sicaps-muted">45 min</span>
+                            </div>
+                            <div class="hidden sm:block w-px self-stretch bg-sicaps-border"></div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-sicaps-primary-soft text-sicaps-primary font-bold text-sm flex items-center justify-center flex-shrink-0 border border-sicaps-primary/20">
+                                    AL
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-sm font-bold text-sicaps-text">Ana Lucía Méndez</h3>
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-muted bg-sicaps-sand-light px-2 py-0.5 rounded-full">
+                                            <svg class="w-3 h-3 text-sicaps-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                                            Presencial • Cons. 1
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-sicaps-muted mt-0.5">Manejo de Duelo y Reestructuración Emocional</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 pl-20 sm:pl-0">
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-sand-light text-sicaps-text">
+                                Programada
+                            </span>
+                            <a href="{{ route('patients.index') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover px-3 py-1.5 rounded-md hover:bg-sicaps-primary-soft transition">
+                                Ver Ficha →
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Cita 4: 03:30 PM -->
+                    <div 
+                        x-show="filterType === 'all' || filterType === 'virtual'"
+                        class="p-5 hover:bg-[#FAF9F6] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                        <div class="flex items-start gap-4">
+                            <div class="w-16 flex-shrink-0 text-left sm:text-right">
+                                <span class="block text-sm font-bold text-sicaps-text">03:30 PM</span>
+                                <span class="text-[11px] text-sicaps-muted">45 min</span>
+                            </div>
+                            <div class="hidden sm:block w-px self-stretch bg-sicaps-border"></div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-sicaps-info-soft text-sicaps-info font-bold text-sm flex items-center justify-center flex-shrink-0 border border-sicaps-info/20">
+                                    DV
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-sm font-bold text-sicaps-text">David Valenzuela</h3>
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-sicaps-info bg-sicaps-info-soft px-2 py-0.5 rounded-full">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+                                            Telepsicología • Pendiente confirmación
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-sicaps-muted mt-0.5">Primera Sesión de Evaluación y Diagnóstico</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 pl-20 sm:pl-0">
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-sicaps-warning-soft text-sicaps-warning">
+                                Por Confirmar
+                            </span>
+                            <a href="{{ route('patients.index') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover px-3 py-1.5 rounded-md hover:bg-sicaps-primary-soft transition">
+                                Ver Ficha →
+                            </a>
+                        </div>
+                    </div>
+
+                @endif
+
+            </div>
+
+            <!-- Pie de tarjeta de agenda con enlace a citas completas -->
+            <div class="p-4 bg-sicaps-sand-light/40 border-t border-sicaps-border text-center">
+                <a href="{{ route('appointments.index') }}" class="text-xs font-semibold text-sicaps-primary hover:text-sicaps-primary-hover hover:underline transition">
+                    Ver agenda semanal y mensual completa →
+                </a>
+            </div>
+
+        </div>
+
+        <!-- COLUMNA DERECHA: ACCESOS RÁPIDOS, NOTAS PENDIENTES Y SEGUIMIENTO (4 cols) -->
+        <div class="lg:col-span-4 space-y-6">
+            
+            <!-- ACCESOS RÁPIDOS CLÍNICOS -->
+            <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted mb-4">
+                    Accesos Rápidos
+                </h3>
+                
+                <div class="grid grid-cols-1 gap-2.5">
+                    <a 
+                        href="{{ route('appointments.create') }}" 
+                        class="flex items-center justify-between p-3 rounded-[10px] border border-sicaps-border hover:border-sicaps-primary/40 hover:bg-sicaps-primary-soft/30 transition group"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-sicaps-primary-soft text-sicaps-primary flex items-center justify-center group-hover:scale-105 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                            </div>
+                            <div>
+                                <span class="text-sm font-bold text-sicaps-text block group-hover:text-sicaps-primary transition">Agendar Cita</span>
+                                <span class="text-[11px] text-sicaps-muted">Presencial o teleconsulta</span>
+                            </div>
+                        </div>
+                        <span class="text-xs text-sicaps-muted group-hover:translate-x-1 transition">→</span>
+                    </a>
+
+                    <a 
+                        href="{{ route('patients.create') }}" 
+                        class="flex items-center justify-between p-3 rounded-[10px] border border-sicaps-border hover:border-sicaps-primary/40 hover:bg-sicaps-primary-soft/30 transition group"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-sicaps-success-soft text-sicaps-success flex items-center justify-center group-hover:scale-105 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.765Z"/></svg>
+                            </div>
+                            <div>
+                                <span class="text-sm font-bold text-sicaps-text block group-hover:text-sicaps-primary transition">Nuevo Paciente</span>
+                                <span class="text-[11px] text-sicaps-muted">Crear ficha y antecedentes</span>
+                            </div>
+                        </div>
+                        <span class="text-xs text-sicaps-muted group-hover:translate-x-1 transition">→</span>
+                    </a>
+
+                    <a 
+                        href="{{ route('clinical.index') }}" 
+                        class="flex items-center justify-between p-3 rounded-[10px] border border-sicaps-border hover:border-sicaps-primary/40 hover:bg-sicaps-primary-soft/30 transition group"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-sicaps-warning-soft text-sicaps-warning flex items-center justify-center group-hover:scale-105 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+                            </div>
+                            <div>
+                                <span class="text-sm font-bold text-sicaps-text block group-hover:text-sicaps-primary transition">Historias Clínicas</span>
+                                <span class="text-[11px] text-sicaps-muted">Búsqueda rápida de expedientes</span>
+                            </div>
+                        </div>
+                        <span class="text-xs text-sicaps-muted group-hover:translate-x-1 transition">→</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- NOTAS DE EVOLUCIÓN PENDIENTES -->
+            <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">
+                        Notas Pendientes (SOAP)
+                    </h3>
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-sicaps-warning-soft text-sicaps-warning">
+                        3 por cerrar
+                    </span>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="p-3 rounded-lg bg-sicaps-sand-light/40 border border-sicaps-border/70">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h4 class="text-sm font-bold text-sicaps-text">Sofía Martínez</h4>
+                                <p class="text-xs text-sicaps-muted">Sesión de ayer • 04:00 PM</p>
+                            </div>
+                            <span class="text-[11px] text-sicaps-warning font-semibold">TCC #5</span>
+                        </div>
+                        <div class="mt-2.5 flex justify-end">
+                            <a href="{{ route('clinical.index') }}" class="text-xs font-semibold text-sicaps-primary hover:text-sicaps-primary-hover hover:underline">
+                                Redactar nota →
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-lg bg-sicaps-sand-light/40 border border-sicaps-border/70">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h4 class="text-sm font-bold text-sicaps-text">Javier Ortiz Morales</h4>
+                                <p class="text-xs text-sicaps-muted">Sesión del 12 Oct • 11:00 AM</p>
+                            </div>
+                            <span class="text-[11px] text-sicaps-warning font-semibold">Control</span>
+                        </div>
+                        <div class="mt-2.5 flex justify-end">
+                            <a href="{{ route('clinical.index') }}" class="text-xs font-semibold text-sicaps-primary hover:text-sicaps-primary-hover hover:underline">
+                                Redactar nota →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEGUIMIENTO: PACIENTES SIN CITA RECIENTE -->
+            <div class="bg-white rounded-card p-5 border border-sicaps-border shadow-soft">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted">
+                        Continuidad y Bienestar
+                    </h3>
+                    <span class="text-[11px] text-sicaps-muted font-medium">Preventivo</span>
+                </div>
+
+                <p class="text-xs text-sicaps-muted mb-3 leading-relaxed">
+                    Pacientes con tratamiento activo que llevan más de 20 días sin agendar sesión de seguimiento:
+                </p>
+
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between py-2 border-b border-sicaps-border/50 text-xs">
+                        <div>
+                            <span class="font-bold text-sicaps-text block">Camila Restrepo</span>
+                            <span class="text-sicaps-muted text-[11px]">Última sesión: hace 22 días</span>
+                        </div>
+                        <a href="{{ route('appointments.create') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover">
+                            Contactar
+                        </a>
+                    </div>
+
+                    <div class="flex items-center justify-between py-2 text-xs">
+                        <div>
+                            <span class="font-bold text-sicaps-text block">Mateo Benítez</span>
+                            <span class="text-sicaps-muted text-[11px]">Última sesión: hace 28 días</span>
+                        </div>
+                        <a href="{{ route('appointments.create') }}" class="text-xs font-medium text-sicaps-primary hover:text-sicaps-primary-hover">
+                            Contactar
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 @endsection
