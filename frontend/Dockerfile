@@ -1,18 +1,17 @@
-FROM php:8.2-cli-alpine
+FROM php:8.2-cli
 
 WORKDIR /var/www
 
-# Instalar extensiones necesarias de PHP y herramientas del sistema
-RUN apk add --no-cache \
-    curl \
+# Instalar dependencias necesarias
+RUN apt-get update && apt-get install -y \
     git \
+    curl \
     unzip \
     libpq-dev \
     libpng-dev \
     libzip-dev \
-    linux-headers \
-    bash \
-    && docker-php-ext-install pdo pdo_pgsql opcache pcntl bcmath
+    && docker-php-ext-install pdo pdo_pgsql opcache pcntl bcmath \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Configurar OPcache para máximo rendimiento
 RUN { \
@@ -30,6 +29,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Copiar todo el código fuente del frontend al contenedor
 COPY . /var/www
+
+# Instalar dependencias de Composer durante el build de la imagen
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Asignar permisos ejecutables a start.sh
 RUN chmod +x /var/www/start.sh

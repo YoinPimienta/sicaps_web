@@ -36,15 +36,16 @@ public class DataSourceConfig {
             dbUrl = defaultUrl;
         }
 
+        dbUrl = dbUrl.trim();
+
         // Si estamos en la nube (Render o Railway) y la URL apunta a localhost, avisar con un error claro
         boolean isCloud = System.getenv("RENDER") != null || System.getenv("RAILWAY_ENVIRONMENT") != null;
         if (isCloud && dbUrl.contains("localhost:5432")) {
             log.error("=================================================================================");
-            log.error("❌ ERROR CRÍTICO: No se ha configurado la variable DATABASE_URL en Render.");
-            log.error("👉 Ve a tu servicio en Render -> pestaña 'Environment' -> añade la variable:");
-            log.error("   DATABASE_URL = (tu enlace de conexión de Neon PostgreSQL)");
+            log.error("❌ ERROR: No se ha configurado la variable DATABASE_URL en Render.");
+            log.error("👉 Ve a tu servicio en Render -> pestaña 'Environment' -> añade DATABASE_URL.");
             log.error("=================================================================================");
-            throw new IllegalStateException("DATABASE_URL no configurada en Render. Debes agregar la variable DATABASE_URL en la pestaña Environment de Render con tu URL de Neon.");
+            throw new IllegalStateException("DATABASE_URL no configurada en Render.");
         }
 
         HikariConfig config = new HikariConfig();
@@ -55,24 +56,53 @@ public class DataSourceConfig {
         config.setConnectionTimeout(20000);
         config.setMaxLifetime(1200000);
 
-        // Convertir URL estándar de PostgreSQL (postgres:// o postgresql:// de Neon/Render) al formato JDBC
-        String jdbcUrl;
-        if (dbUrl.startsWith("postgres://")) {
-            jdbcUrl = "jdbc:postgresql://" + dbUrl.substring(11);
-        } else if (dbUrl.startsWith("postgresql://")) {
-            jdbcUrl = "jdbc:postgresql://" + dbUrl.substring(13);
-        } else {
-            jdbcUrl = dbUrl;
+        // Procesar URL estándar de PostgreSQL (ej. postgresql://user:pass@host/db) para cumplir con el formato JDBC
+        String raw = dbUrl;
+        if (raw.startsWith("jdbc:")) {
+            raw = raw.substring(5);
+        }
+        if (raw.startsWith("postgres://")) {
+            raw = raw.substring(11);
+        } else if (raw.startsWith("postgresql://")) {
+            raw = raw.substring(13);
         }
 
-        log.info("Iniciando conexión a base de datos PostgreSQL...");
+        String jdbcUrl;
+        String user = null;
+        String pass = null;
+
+        if (raw.contains("@")) {
+            int atPos = raw.indexOf("@");
+            String credentials = raw.substring(0, atPos);
+            String hostAndRest = raw.substring(atPos + 1);
+
+            if (credentials.contains(":")) {
+                int colonPos = credentials.indexOf(":");
+                user = credentials.substring(0, colonPos);
+                pass = credentials.substring(colonPos + 1);
+            } else {
+                user = credentials;
+            }
+
+            jdbcUrl = "jdbc:postgresql://" + hostAndRest;
+        } else {
+            jdbcUrl = "jdbc:postgresql://" + raw;
+        }
+
+        log.info("Conectando a base de datos PostgreSQL: {}", jdbcUrl.replaceAll("\\?.*", ""));
         config.setJdbcUrl(jdbcUrl);
 
-        // Si la URL no contiene credenciales embebidas (user:pass@), aplicar las variables de entorno
-        String envUser = System.getenv("DB_USERNAME");
-        String envPass = System.getenv("DB_PASSWORD");
-        if (!jdbcUrl.contains("@")) {
+        if (user != null && !user.isBlank()) {
+            config.setUsername(user);
+        } else {
+            String envUser = System.getenv("DB_USERNAME");
             config.setUsername(envUser != null && !envUser.isBlank() ? envUser : defaultUsername);
+        }
+
+        if (pass != null && !pass.isBlank()) {
+            config.setPassword(pass);
+        } else {
+            String envPass = System.getenv("DB_PASSWORD");
             config.setPassword(envPass != null && !envPass.isBlank() ? envPass : defaultPassword);
         }
 

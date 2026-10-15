@@ -9,16 +9,16 @@ if [ ! -f ".env" ]; then
     cp .env.example .env
 fi
 
-# 2. Generar APP_KEY si no está configurada
-if ! grep -q "APP_KEY=base64" .env; then
-    echo "Generando clave de aplicación Laravel..."
-    php artisan key:generate --force
-fi
-
-# 3. Asegurar que las dependencias estén instaladas
+# 2. Asegurar dependencias de Composer ANTES de ejecutar artisan
 if [ ! -f "vendor/autoload.php" ]; then
     echo "Instalando dependencias de composer..."
     composer install --no-dev --optimize-autoloader --no-interaction
+fi
+
+# 3. Generar APP_KEY si no está configurada
+if ! grep -q "APP_KEY=base64" .env; then
+    echo "Generando clave de aplicación Laravel..."
+    php artisan key:generate --force || true
 fi
 
 # 4. Asegurar directorios de almacenamiento y permisos
