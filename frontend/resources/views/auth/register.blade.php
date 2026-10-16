@@ -71,9 +71,12 @@
         <!-- Logo -->
         <div class="relative z-10 flex items-center gap-3">
             <div class="w-11 h-11 rounded-2xl bg-sicaps-primary text-white flex items-center justify-center shadow-md">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
-                    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                <!-- Isotipo de la Psique (Ψ) y Escucha Empática -->
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 6.5v3a7 7 0 0 0 14 0v-3" />
+                    <path d="M12 3v17" />
+                    <path d="M8.5 20h7" />
+                    <circle cx="12" cy="3.5" r="1.5" fill="currentColor" stroke="none" />
                 </svg>
             </div>
             <div>
@@ -132,8 +135,11 @@
             <!-- Mobile Header -->
             <div class="lg:hidden flex items-center gap-3 mb-8">
                 <div class="w-10 h-10 rounded-xl bg-sicaps-primary text-white flex items-center justify-center shadow-sm">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 6.5v3a7 7 0 0 0 14 0v-3" />
+                        <path d="M12 3v17" />
+                        <path d="M8.5 20h7" />
+                        <circle cx="12" cy="3.5" r="1.5" fill="currentColor" stroke="none" />
                     </svg>
                 </div>
                 <div>

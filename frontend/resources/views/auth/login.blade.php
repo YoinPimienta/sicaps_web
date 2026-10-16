@@ -72,10 +72,12 @@
         <!-- Logo y Nombre de marca -->
         <div class="relative z-10 flex items-center gap-3">
             <div class="w-11 h-11 rounded-2xl bg-sicaps-primary text-white flex items-center justify-center shadow-md">
-                <!-- Icono hoja / bienestar mental -->
+                <!-- Isotipo de la Psique (Ψ) y Escucha Empática -->
                 <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
-                    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                    <path d="M5 6.5v3a7 7 0 0 0 14 0v-3" />
+                    <path d="M12 3v17" />
+                    <path d="M8.5 20h7" />
+                    <circle cx="12" cy="3.5" r="1.5" fill="currentColor" stroke="none" />
                 </svg>
             </div>
             <div>
@@ -84,25 +86,63 @@
             </div>
         </div>
 
-        <!-- Ilustración Central Botánica Serene (SVG artesanal limpio) -->
+        <!-- Ilustración Central: Diálogo Terapéutico, Psique e Insight (SVG clínico y armónico) -->
         <div class="relative z-10 my-auto py-8 flex flex-col items-center text-center">
             <div class="w-72 h-72 mb-8 relative flex items-center justify-center">
                 <!-- Círculos de respiración y serenidad -->
                 <div class="absolute inset-0 rounded-full bg-white/60 shadow-soft animate-pulse" style="animation-duration: 6s;"></div>
                 <div class="absolute inset-6 rounded-full border border-sicaps-primary/20"></div>
                 
-                <!-- Arte botánico orgánico -->
-                <svg class="w-48 h-48 text-sicaps-primary relative z-10" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="100" cy="100" r="85" stroke="#2F7F79" stroke-width="1.5" stroke-dasharray="4 4" stroke-opacity="0.3"/>
-                    <path d="M100 170 C100 130 95 90 65 60 C85 65 110 80 115 110" stroke="#2F7F79" stroke-width="2.5" stroke-linecap="round"/>
-                    <path d="M100 170 C100 120 105 85 135 65 C120 75 105 95 100 125" stroke="#2F7F79" stroke-width="2.5" stroke-linecap="round"/>
-                    <path d="M100 170 V40" stroke="#2F7F79" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="100" cy="40" r="5" fill="#2F7F79"/>
-                    <!-- Hojas suaves -->
-                    <path d="M100 120 C80 110 70 95 72 80 C88 85 96 100 100 120 Z" fill="#2F7F79" fill-opacity="0.25"/>
-                    <path d="M100 100 C120 90 130 75 128 60 C112 65 104 80 100 100 Z" fill="#2F7F79" fill-opacity="0.25"/>
-                    <path d="M100 140 C115 132 122 120 120 110 C108 114 102 125 100 140 Z" fill="#2F7F79" fill-opacity="0.2"/>
-                    <path d="M100 150 C85 142 78 130 80 120 C92 124 98 135 100 150 Z" fill="#2F7F79" fill-opacity="0.2"/>
+                <!-- Arte de la Psique y el Encuentro Terapéutico -->
+                <svg class="w-56 h-56 relative z-10" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="psiGrad" x1="40" y1="20" x2="200" y2="220" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#2F7F79" />
+                            <stop offset="100%" stop-color="#256A65" />
+                        </linearGradient>
+                        <radialGradient id="insightGlow" cx="120" cy="45" r="30" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#2F7F79" stop-opacity="0.3" />
+                            <stop offset="100%" stop-color="#2F7F79" stop-opacity="0" />
+                        </radialGradient>
+                        <linearGradient id="softArea" x1="120" y1="70" x2="120" y2="180" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#2F7F79" stop-opacity="0.08" />
+                            <stop offset="100%" stop-color="#2F7F79" stop-opacity="0.02" />
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Ondas concéntricas de resonancia y escucha empática -->
+                    <circle cx="120" cy="120" r="105" stroke="#2F7F79" stroke-width="1.2" stroke-opacity="0.18" stroke-dasharray="6 6" />
+                    <circle cx="120" cy="120" r="85" stroke="#2F7F79" stroke-width="1.5" stroke-opacity="0.25" />
+                    <circle cx="120" cy="120" r="62" fill="url(#softArea)" />
+
+                    <!-- Halo de claridad / Insight -->
+                    <circle cx="120" cy="45" r="26" fill="url(#insightGlow)" />
+
+                    <!-- Cáliz de la Psique (Holding y Contención Terapéutica) -->
+                    <!-- Brazo izquierdo: escucha y sostén del profesional -->
+                    <path d="M60 85 C60 142 88 175 120 175" stroke="url(#psiGrad)" stroke-width="3" stroke-linecap="round" />
+                    <!-- Brazo derecho: confianza y apertura del paciente -->
+                    <path d="M180 85 C180 142 152 175 120 175" stroke="url(#psiGrad)" stroke-width="3" stroke-linecap="round" />
+
+                    <!-- Líneas orgánicas internas: los dos mundos conectando en diálogo -->
+                    <path d="M74 90 C72 100 75 110 79 116 C76 124 77 134 85 142" stroke="#2F7F79" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.45" />
+                    <path d="M166 90 C168 100 165 110 161 116 C164 124 163 134 155 142" stroke="#2F7F79" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.45" />
+
+                    <!-- Eje central: estabilidad, estructura y salud mental -->
+                    <path d="M120 48 V195" stroke="url(#psiGrad)" stroke-width="3" stroke-linecap="round" />
+
+                    <!-- Base de apoyo y ética profesional -->
+                    <path d="M96 195 H144" stroke="url(#psiGrad)" stroke-width="3" stroke-linecap="round" />
+
+                    <!-- Nodo de Insight (el momento de toma de consciencia y sanación) -->
+                    <circle cx="120" cy="45" r="7" fill="#2F7F79" />
+                    <circle cx="120" cy="45" r="3" fill="#FFFFFF" />
+
+                    <!-- Nodos de equilibrio emocional en los extremos -->
+                    <circle cx="60" cy="85" r="4.5" fill="#2F7F79" />
+                    <circle cx="180" cy="85" r="4.5" fill="#2F7F79" />
+                    <circle cx="60" cy="85" r="2" fill="#FFFFFF" />
+                    <circle cx="180" cy="85" r="2" fill="#FFFFFF" />
                 </svg>
             </div>
 
@@ -147,9 +187,11 @@
             <!-- Logo para móviles -->
             <div class="lg:hidden flex items-center gap-3 mb-8">
                 <div class="w-10 h-10 rounded-xl bg-sicaps-primary text-white flex items-center justify-center shadow-sm">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
-                        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 6.5v3a7 7 0 0 0 14 0v-3" />
+                        <path d="M12 3v17" />
+                        <path d="M8.5 20h7" />
+                        <circle cx="12" cy="3.5" r="1.5" fill="currentColor" stroke="none" />
                     </svg>
                 </div>
                 <div>
@@ -214,7 +256,7 @@
                 action="{{ route('login') }}" 
                 method="POST" 
                 class="space-y-5"
-                x-data="{ showPass: false, submitting: false }"
+                x-data="{ email: '{{ old('email') }}', password: '', showPass: false, submitting: false }"
                 @submit="submitting = true"
             >
                 @csrf
@@ -234,9 +276,9 @@
                             id="email" 
                             name="email" 
                             type="email" 
+                            x-model="email"
                             autocomplete="email" 
                             required 
-                            value="{{ old('email') }}"
                             placeholder="ejemplo@sicaps.com"
                             class="w-full pl-10 pr-4 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
                         >
@@ -262,6 +304,7 @@
                         <input 
                             id="password" 
                             name="password" 
+                            x-model="password"
                             :type="showPass ? 'text' : 'password'" 
                             autocomplete="current-password" 
                             required 
@@ -305,6 +348,29 @@
                         <svg x-show="!submitting" class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
                         </svg>
+                    </button>
+                </div>
+
+                <!-- Tarjeta de acceso rápido / Credenciales de Administrador -->
+                <div class="p-3 bg-white border border-sicaps-border rounded-xl flex items-center justify-between text-xs shadow-soft mt-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-sicaps-primary-soft text-sicaps-primary flex items-center justify-center text-xs">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z"/>
+                            </svg>
+                        </div>
+                        <div class="text-left leading-tight">
+                            <span class="font-semibold text-sicaps-text block text-[11.5px]">Credenciales Administrador</span>
+                            <span class="text-sicaps-muted text-[10.5px]">admin@sicaps.com · admin123</span>
+                        </div>
+                    </div>
+                    <button 
+                        type="button" 
+                        @click="email = 'admin@sicaps.com'; password = 'admin123'"
+                        class="px-2.5 py-1 bg-sicaps-primary-soft hover:bg-sicaps-primary hover:text-white text-sicaps-primary font-medium rounded-lg text-[11px] transition"
+                        title="Rellenar campos automáticamente"
+                    >
+                        Autocompletar
                     </button>
                 </div>
             </form>

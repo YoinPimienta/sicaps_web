@@ -25,10 +25,13 @@ class AuthController
 
         $apiUrl = config('services.backend.api_url', env('API_BASE_URL', 'http://backend:8080/api'));
 
+        $email = strtolower(trim($request->email));
+        $password = trim($request->password);
+
         try {
-            $response = Http::post($apiUrl . '/auth/login', [
-                'email' => $request->email,
-                'password' => $request->password,
+            $response = Http::timeout(12)->post($apiUrl . '/auth/login', [
+                'email' => $email,
+                'password' => $password,
             ]);
 
             if ($response->successful()) {
@@ -44,7 +47,7 @@ class AuthController
             }
 
             return back()->withErrors([
-                'email' => 'Las credenciales proporcionadas no son válidas o el usuario está inactivo.',
+                'email' => 'Las credenciales proporcionadas no son válidas o el usuario está inactivo. Verifica el correo y la contraseña ingresada.',
             ])->onlyInput('email');
 
         } catch (\Exception $e) {

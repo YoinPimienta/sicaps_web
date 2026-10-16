@@ -144,14 +144,17 @@
         <!-- Logo SICAPS -->
         <div class="h-20 px-6 flex items-center justify-between border-b border-sicaps-border/50">
             <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 group">
-                <!-- Isotipo botánico original y estilizado -->
-                <div class="w-10 h-10 rounded-xl bg-sicaps-primary-soft text-sicaps-primary flex items-center justify-center transition-transform group-hover:scale-105 duration-200 shadow-sm">
+                <!-- Isotipo clínico de la Psique (Ψ) y Escucha Empática -->
+                <div class="w-10 h-10 rounded-xl bg-sicaps-primary-soft text-sicaps-primary flex items-center justify-center transition-transform group-hover:scale-105 duration-200 shadow-sm border border-sicaps-primary/15">
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2a9 9 0 0 1 9 9c0 4.97-4.03 9-9 9A9 9 0 0 1 3 11a9 9 0 0 1 9-9Z" fill="#2F7F79" fill-opacity="0.15"/>
-                        <path d="M12 6c-3.31 0-6 2.69-6 6 0 2.5 1.5 4.5 3.5 5.5"/>
-                        <path d="M12 6c3.31 0 6 2.69 6 6 0 2.5-1.5 4.5-3.5 5.5"/>
-                        <path d="M12 2v20"/>
-                        <path d="M8 9l4 3 4-3"/>
+                        <!-- Cáliz de la Psique / Alianza y acogida terapéutica -->
+                        <path d="M5 6.5v3a7 7 0 0 0 14 0v-3" />
+                        <!-- Eje central de estabilidad emocional -->
+                        <path d="M12 3v17" />
+                        <!-- Base de fundamento clínico -->
+                        <path d="M8.5 20h7" />
+                        <!-- Insight / Claridad y consciencia mental -->
+                        <circle cx="12" cy="3.5" r="1.5" fill="currentColor" stroke="none" />
                     </svg>
                 </div>
                 <div>

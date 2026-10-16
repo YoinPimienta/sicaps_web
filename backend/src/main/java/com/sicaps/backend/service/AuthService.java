@@ -19,21 +19,25 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public AuthResponse login(LoginRequest request) {
+        String email = request.getEmail() != null ? request.getEmail().trim() : "";
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
+                        email,
                         request.getPassword()
                 )
         );
-        var user = userRepository.findByEmail(request.getEmail())
+        var user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow();
         var jwtToken = jwtService.generateToken(user);
+        
+        String fullName = (user.getName() != null ? user.getName() : "") + 
+                (user.getLastName() != null ? " " + user.getLastName() : "");
         
         return AuthResponse.builder()
                 .token(jwtToken)
                 .email(user.getEmail())
                 .role(user.getRole().getName().name())
-                .name(user.getName() + " " + user.getLastName())
+                .name(fullName.trim().isEmpty() ? user.getEmail() : fullName.trim())
                 .build();
     }
 }
