@@ -27,7 +27,8 @@ public class PatientService {
 
     @Transactional
     public Patient createPatient(PatientRequestDTO dto) {
-        if (userRepository.existsByEmail(dto.getEmail())) {
+        String email = dto.getEmail() != null ? dto.getEmail().trim() : "";
+        if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new IllegalArgumentException("El email ya está registrado");
         }
         if (userRepository.existsByDocumentNumber(dto.getDocumentNumber())) {

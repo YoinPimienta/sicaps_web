@@ -87,13 +87,13 @@ class AuthController
         $apiUrl = config('services.backend.api_url', env('API_BASE_URL', 'http://backend:8080/api'));
 
         try {
-            $response = Http::post($apiUrl . '/auth/register', [
-                'name' => $request->name,
-                'lastName' => $request->lastName,
-                'documentType' => $request->documentType,
-                'documentNumber' => $request->documentNumber,
-                'email' => $request->email,
-                'password' => $request->password,
+            $response = Http::timeout(12)->post($apiUrl . '/auth/register', [
+                'name' => trim($request->name),
+                'lastName' => trim($request->lastName),
+                'documentType' => trim($request->documentType),
+                'documentNumber' => trim($request->documentNumber),
+                'email' => strtolower(trim($request->email)),
+                'password' => trim($request->password),
             ]);
 
             if ($response->successful()) {

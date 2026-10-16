@@ -256,7 +256,7 @@
                 action="{{ route('login') }}" 
                 method="POST" 
                 class="space-y-5"
-                x-data="{ email: '{{ old('email') }}', password: '', showPass: false, submitting: false }"
+                x-data="{ showPass: false, submitting: false }"
                 @submit="submitting = true"
             >
                 @csrf
@@ -276,9 +276,9 @@
                             id="email" 
                             name="email" 
                             type="email" 
-                            x-model="email"
                             autocomplete="email" 
                             required 
+                            value="{{ old('email') }}"
                             placeholder="ejemplo@sicaps.com"
                             class="w-full pl-10 pr-4 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
                         >
@@ -304,7 +304,6 @@
                         <input 
                             id="password" 
                             name="password" 
-                            x-model="password"
                             :type="showPass ? 'text' : 'password'" 
                             autocomplete="current-password" 
                             required 
@@ -348,29 +347,6 @@
                         <svg x-show="!submitting" class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
                         </svg>
-                    </button>
-                </div>
-
-                <!-- Tarjeta de acceso rápido / Credenciales de Administrador -->
-                <div class="p-3 bg-white border border-sicaps-border rounded-xl flex items-center justify-between text-xs shadow-soft mt-3">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-7 h-7 rounded-lg bg-sicaps-primary-soft text-sicaps-primary flex items-center justify-center text-xs">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z"/>
-                            </svg>
-                        </div>
-                        <div class="text-left leading-tight">
-                            <span class="font-semibold text-sicaps-text block text-[11.5px]">Credenciales Administrador</span>
-                            <span class="text-sicaps-muted text-[10.5px]">admin@sicaps.com · admin123</span>
-                        </div>
-                    </div>
-                    <button 
-                        type="button" 
-                        @click="email = 'admin@sicaps.com'; password = 'admin123'"
-                        class="px-2.5 py-1 bg-sicaps-primary-soft hover:bg-sicaps-primary hover:text-white text-sicaps-primary font-medium rounded-lg text-[11px] transition"
-                        title="Rellenar campos automáticamente"
-                    >
-                        Autocompletar
                     </button>
                 </div>
             </form>
