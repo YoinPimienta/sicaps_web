@@ -3,8 +3,32 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
+// Health check para monitores externos (UptimeRobot, etc.) que despierta y mantiene calientes Frontend, Backend y Neon DB
+Route::get('/health', function () {
+    $apiUrl = config('services.backend.api_url', env('API_BASE_URL', 'http://backend:8080/api'));
+    $backendHealth = null;
+    try {
+        $res = \Illuminate\Support\Facades\Http::timeout(5)->get($apiUrl . '/health');
+        $backendHealth = $res->json();
+    } catch (\Throwable $t) {
+        $backendHealth = ['status' => 'WAKING_UP', 'message' => $t->getMessage()];
+    }
+
+    return response()->json([
+        'frontend' => 'UP',
+        'backend' => $backendHealth,
+        'timestamp' => now()->toIso8601String()
+    ]);
+});
+
 // Ruta principal redirige al dashboard si hay sesion, o al login
 Route::get('/', function () {
+    // Si un bot o monitor (como UptimeRobot) visita la raíz del frontend, enviamos un pulso al backend
+    try {
+        $apiUrl = config('services.backend.api_url', env('API_BASE_URL', 'http://backend:8080/api'));
+        \Illuminate\Support\Facades\Http::timeout(1)->get($apiUrl . '/health');
+    } catch (\Throwable $t) {}
+
     if (session()->has('jwt_token')) {
         return redirect()->route('dashboard');
     }
