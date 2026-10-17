@@ -31,7 +31,7 @@ Route::middleware(['web', 'auth.jwt'])->group(function () {
             $res = \Illuminate\Support\Facades\Http::withHeaders([
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json'
-            ])->timeout(4)->get($apiUrl . '/appointments');
+            ])->timeout(20)->get($apiUrl . '/appointments');
 
             if ($res->status() === 401) {
                 session()->flush();
@@ -45,7 +45,7 @@ Route::middleware(['web', 'auth.jwt'])->group(function () {
             $pRes = \Illuminate\Support\Facades\Http::withHeaders([
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json'
-            ])->timeout(4)->get($apiUrl . '/patients');
+            ])->timeout(20)->get($apiUrl . '/patients');
 
             if ($pRes->status() === 401) {
                 session()->flush();

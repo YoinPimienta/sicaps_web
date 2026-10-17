@@ -54,9 +54,20 @@
         }
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
-    <style>
-        [x-cloak] { display: none !important; }
-    </style>
+    <script>
+        // Precalentamiento proactivo: Despertar el backend en segundo plano mientras el usuario digita sus credenciales
+        (function() {
+            @php
+                $apiUrl = config('services.backend.api_url', env('API_BASE_URL', 'http://backend:8080/api'));
+                $healthUrl = str_starts_with($apiUrl, 'http') ? $apiUrl . '/health' : null;
+            @endphp
+            @if($healthUrl)
+            try {
+                fetch('{{ $healthUrl }}', { mode: 'no-cors', cache: 'no-cache' }).catch(function(){});
+            } catch(e) {}
+            @endif
+        })();
+    </script>
 </head>
 <body class="h-full font-sans antialiased text-sicaps-text bg-sicaps-bg">
 

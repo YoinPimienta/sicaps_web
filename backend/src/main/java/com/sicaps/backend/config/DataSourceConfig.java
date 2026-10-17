@@ -50,11 +50,14 @@ public class DataSourceConfig {
 
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("org.postgresql.Driver");
-        config.setMaximumPoolSize(10);
-        config.setMinimumIdle(2);
-        config.setIdleTimeout(300000);
-        config.setConnectionTimeout(20000);
-        config.setMaxLifetime(1200000);
+        config.setMaximumPoolSize(6);
+        config.setMinimumIdle(1);
+        config.setIdleTimeout(60000); // 1 minuto
+        config.setConnectionTimeout(30000); // 30 segundos
+        config.setMaxLifetime(300000); // 5 minutos (renueva antes de que Neon cierre el socket)
+        config.setKeepaliveTime(30000); // Pings periódicos cada 30 segundos
+        config.setValidationTimeout(5000);
+        config.setConnectionTestQuery("SELECT 1");
 
         // Procesar URL estándar de PostgreSQL (ej. postgresql://user:pass@host/db) para cumplir con el formato JDBC
         String raw = dbUrl;
@@ -87,6 +90,26 @@ public class DataSourceConfig {
             jdbcUrl = "jdbc:postgresql://" + hostAndRest;
         } else {
             jdbcUrl = "jdbc:postgresql://" + raw;
+        }
+
+        // Si es una conexión remota a Neon o Render, asegurar parámetros de estabilidad de conexión
+        if (!jdbcUrl.contains("localhost:5432")) {
+            char separator = jdbcUrl.contains("?") ? '&' : '?';
+            if (!jdbcUrl.contains("sslmode=")) {
+                jdbcUrl += separator + "sslmode=require";
+                separator = '&';
+            }
+            if (!jdbcUrl.contains("tcpKeepAlive=")) {
+                jdbcUrl += separator + "tcpKeepAlive=true";
+                separator = '&';
+            }
+            if (!jdbcUrl.contains("connectTimeout=")) {
+                jdbcUrl += separator + "connectTimeout=20";
+                separator = '&';
+            }
+            if (!jdbcUrl.contains("socketTimeout=")) {
+                jdbcUrl += separator + "socketTimeout=45";
+            }
         }
 
         log.info("Conectando a base de datos PostgreSQL: {}", jdbcUrl.replaceAll("\\?.*", ""));
