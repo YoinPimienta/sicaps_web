@@ -101,14 +101,42 @@
             <div class="space-y-3.5 text-xs">
                 
                 <div class="flex justify-between py-2 border-b border-sicaps-border/50">
-                    <span class="text-sicaps-muted">Tarjeta Profesional / ReTHUS:</span>
+                    <span class="text-sicaps-muted">Tarjeta Profesional Colpsic:</span>
                     <span class="font-mono font-bold text-sicaps-text">{{ $professional['medicalRegistrationNumber'] ?? 'Pendiente' }}</span>
                 </div>
+
+                @if(!empty($professional['rethusNumber']))
+                <div class="flex justify-between py-2 border-b border-sicaps-border/50">
+                    <span class="text-sicaps-muted">Registro ReTHUS MinSalud:</span>
+                    <span class="font-mono font-semibold text-sicaps-text">{{ $professional['rethusNumber'] }}</span>
+                </div>
+                @endif
 
                 <div class="flex justify-between py-2 border-b border-sicaps-border/50">
                     <span class="text-sicaps-muted">Especialidad Clínica:</span>
                     <span class="font-semibold text-sicaps-primary">{{ $professional['specialty'] ?? 'Psicología General' }}</span>
                 </div>
+
+                @if(!empty($professional['therapeuticApproach']))
+                <div class="flex justify-between py-2 border-b border-sicaps-border/50">
+                    <span class="text-sicaps-muted">Enfoque Terapéutico:</span>
+                    <span class="font-semibold text-sicaps-text">{{ $professional['therapeuticApproach'] }}</span>
+                </div>
+                @endif
+
+                @if(!empty($professional['university']))
+                <div class="flex justify-between py-2 border-b border-sicaps-border/50">
+                    <span class="text-sicaps-muted">Universidad de Egreso:</span>
+                    <span class="font-medium text-sicaps-text">{{ $professional['university'] }}</span>
+                </div>
+                @endif
+
+                @if(!empty($professional['consultationModality']))
+                <div class="flex justify-between py-2 border-b border-sicaps-border/50">
+                    <span class="text-sicaps-muted">Modalidad de Consulta:</span>
+                    <span class="font-medium text-sicaps-text">{{ $professional['consultationModality'] }}</span>
+                </div>
+                @endif
 
                 <div class="flex justify-between py-2 border-b border-sicaps-border/50">
                     <span class="text-sicaps-muted">Rol en SICAPS:</span>

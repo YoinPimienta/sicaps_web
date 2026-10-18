@@ -42,6 +42,9 @@ public class PatientRequestDTO {
     // Patient specific fields
     private String emergencyContactName;
     private String emergencyContactPhone;
+    private String emergencyContactRelationship;
+    private String eps;
+    private Boolean informedConsentAccepted;
     private String medicalBackground;
     private String familyBackground;
     private String psychologicalBackground;

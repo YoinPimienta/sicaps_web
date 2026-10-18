@@ -85,7 +85,12 @@ public class DataInitializer implements CommandLineRunner {
             com.sicaps.backend.entity.Professional professional = new com.sicaps.backend.entity.Professional();
             professional.setUser(profUser);
             professional.setSpecialty("Psicología Clínica y de la Salud");
-            professional.setMedicalRegistrationNumber("TP-098765");
+            professional.setMedicalRegistrationNumber("TP-098765-CO");
+            professional.setRethusNumber("RETHUS-COLPSIC-2021-8492");
+            professional.setTherapeuticApproach("Terapia Cognitivo-Conductual (TCC) e Intervención en Crisis");
+            professional.setUniversity("Universidad Nacional de Colombia");
+            professional.setConsultationModality("Presencial y Telepsicología");
+            professional.setConsultingRoom("Consultorio Clínico 204");
             professionalRepository.save(professional);
         } else {
             profUser.setPassword(passwordEncoder.encode("doc123"));

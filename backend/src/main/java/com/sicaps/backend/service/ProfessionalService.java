@@ -62,6 +62,11 @@ public class ProfessionalService {
         prof.setUser(user);
         prof.setSpecialty(dto.getSpecialty());
         prof.setMedicalRegistrationNumber(dto.getMedicalRegistrationNumber());
+        if (dto.getRethusNumber() != null) prof.setRethusNumber(dto.getRethusNumber());
+        if (dto.getTherapeuticApproach() != null) prof.setTherapeuticApproach(dto.getTherapeuticApproach());
+        if (dto.getUniversity() != null) prof.setUniversity(dto.getUniversity());
+        if (dto.getConsultationModality() != null) prof.setConsultationModality(dto.getConsultationModality());
+        if (dto.getConsultingRoom() != null) prof.setConsultingRoom(dto.getConsultingRoom());
 
         return professionalRepository.save(prof);
     }

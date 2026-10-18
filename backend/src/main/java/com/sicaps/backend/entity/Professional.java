@@ -30,6 +30,21 @@ public class Professional {
     @Column(name = "medical_registration_number", length = 50, unique = true)
     private String medicalRegistrationNumber;
 
+    @Column(name = "rethus_number", length = 50)
+    private String rethusNumber;
+
+    @Column(name = "therapeutic_approach", length = 150)
+    private String therapeuticApproach;
+
+    @Column(name = "university", length = 150)
+    private String university;
+
+    @Column(name = "consultation_modality", length = 50)
+    private String consultationModality;
+
+    @Column(name = "consulting_room", length = 50)
+    private String consultingRoom;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

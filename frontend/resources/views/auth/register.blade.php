@@ -186,138 +186,481 @@
                 </div>
             @endif
 
-            <!-- Formulario -->
+            <!-- Formulario Stepper Clínico -->
             <form 
                 action="{{ route('register.post') }}" 
                 method="POST" 
-                class="space-y-4"
-                x-data="{ submitting: false, showPass: false }"
+                class="space-y-6"
+                x-data="{ 
+                    step: 1,
+                    submitting: false, 
+                    showPass: false,
+                    name: '{{ old('name', '') }}',
+                    lastName: '{{ old('lastName', '') }}',
+                    docType: '{{ old('documentType', 'CC') }}',
+                    docNum: '{{ old('documentNumber', '') }}',
+                    email: '{{ old('email', '') }}',
+                    password: '',
+                    birthDate: '{{ old('birthDate', '') }}',
+                    gender: '{{ old('gender', '') }}',
+                    phone: '{{ old('phone', '') }}',
+                    address: '{{ old('address', '') }}',
+                    eps: '{{ old('eps', '') }}',
+                    emergencyContactName: '{{ old('emergencyContactName', '') }}',
+                    emergencyContactPhone: '{{ old('emergencyContactPhone', '') }}',
+                    emergencyContactRelationship: '{{ old('emergencyContactRelationship', '') }}',
+                    showConsentModal: false,
+
+                    get computedAge() {
+                        if (!this.birthDate) return null;
+                        const b = new Date(this.birthDate);
+                        if (isNaN(b.getTime())) return null;
+                        const today = new Date();
+                        let age = today.getFullYear() - b.getFullYear();
+                        const m = today.getMonth() - b.getMonth();
+                        if (m < 0 || (m === 0 && today.getDate() < b.getDate())) {
+                            age--;
+                        }
+                        return age >= 0 ? age : null;
+                    },
+
+                    get docPlaceholder() {
+                        switch(this.docType) {
+                            case 'CC': return 'Ej. 1020111234';
+                            case 'TI': return 'Ej. 1098111222';
+                            case 'CE': return 'Ej. 854921';
+                            case 'PPT': return 'Ej. 9845124';
+                            case 'PASSPORT': return 'Ej. PA0987654';
+                            default: return 'Número de identificación';
+                        }
+                    },
+
+                    get docHelper() {
+                        switch(this.docType) {
+                            case 'CC': return 'Cédula de Ciudadanía: 6 a 10 dígitos numéricos (se admiten números repetidos ej. 1020111...)';
+                            case 'TI': return 'Tarjeta de Identidad: Formato numérico para menores de edad (8 a 11 dígitos)';
+                            case 'CE': return 'Cédula de Extranjería para residentes en Colombia';
+                            case 'PPT': return 'Permiso por Protección Temporal emitido por Migración';
+                            case 'PASSPORT': return 'Número oficial de pasaporte internacional';
+                            default: return 'Documento válido de identificación';
+                        }
+                    },
+
+                    goToStep2() {
+                        if (!this.name.trim() || !this.lastName.trim() || !this.docNum.trim() || !this.email.trim() || !this.password) {
+                            alert('Por favor completa todos los campos del Paso 1 antes de continuar a la ficha clínica.');
+                            return;
+                        }
+                        if (this.password.length < 6) {
+                            alert('La contraseña debe tener un mínimo de 6 caracteres.');
+                            return;
+                        }
+                        this.step = 2;
+                    }
+                }"
                 @submit="submitting = true"
             >
                 @csrf
 
-                <!-- Fila 1: Nombre y Apellido -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
-                            Nombre
-                        </label>
-                        <input 
-                            type="text" 
-                            name="name" 
-                            required 
-                            value="{{ old('name') }}"
-                            placeholder="Ej. Juan"
-                            class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
-                        >
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
-                            Apellido
-                        </label>
-                        <input 
-                            type="text" 
-                            name="lastName" 
-                            required 
-                            value="{{ old('lastName') }}"
-                            placeholder="Ej. Pérez"
-                            class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
-                        >
-                    </div>
-                </div>
-
-                <!-- Fila 2: Tipo de Documento y Número -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
-                            Tipo Doc.
-                        </label>
-                        <select 
-                            name="documentType" 
-                            required 
-                            class="w-full px-3 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
-                        >
-                            <option value="CC" {{ old('documentType') == 'CC' ? 'selected' : '' }}>CC (Cédula)</option>
-                            <option value="TI" {{ old('documentType') == 'TI' ? 'selected' : '' }}>TI (Tarjeta Identidad)</option>
-                            <option value="CE" {{ old('documentType') == 'CE' ? 'selected' : '' }}>CE (Extranjería)</option>
-                            <option value="PAS" {{ old('documentType') == 'PAS' ? 'selected' : '' }}>Pasaporte</option>
-                        </select>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
-                            Número de Documento
-                        </label>
-                        <input 
-                            type="text" 
-                            name="documentNumber" 
-                            required 
-                            value="{{ old('documentNumber') }}"
-                            placeholder="Ej. 1020304050"
-                            class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
-                        >
-                    </div>
-                </div>
-
-                <!-- Campo Correo Electrónico -->
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
-                        Correo Electrónico
-                    </label>
-                    <input 
-                        type="email" 
-                        name="email" 
-                        required 
-                        value="{{ old('email') }}"
-                        placeholder="tu-correo@ejemplo.com"
-                        class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
-                    >
-                </div>
-
-                <!-- Campo Contraseña -->
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
-                        Contraseña (mínimo 6 caracteres)
-                    </label>
-                    <div class="relative">
-                        <input 
-                            :type="showPass ? 'text' : 'password'" 
-                            name="password" 
-                            required 
-                            minlength="6"
-                            placeholder="••••••••"
-                            class="w-full px-3.5 pr-11 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
-                        >
-                        <button 
-                            type="button" 
-                            @click="showPass = !showPass" 
-                            class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-sicaps-muted hover:text-sicaps-text transition focus:outline-none"
-                            tabindex="-1"
-                        >
-                            <svg x-show="!showPass" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-                            </svg>
-                            <svg x-show="showPass" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Botón de Envío -->
-                <div class="pt-4">
+                <!-- Indicador de Pasos Clínicos -->
+                <div class="flex items-center justify-between pb-4 border-b border-sicaps-border/70">
                     <button 
-                        type="submit" 
-                        :disabled="submitting"
-                        class="w-full py-3 px-4 bg-sicaps-primary hover:bg-sicaps-primary-hover active:scale-[0.99] text-white font-medium rounded-[10px] shadow-sm transition flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sicaps-primary disabled:opacity-75 disabled:cursor-not-allowed"
+                        type="button" 
+                        @click="step = 1"
+                        class="flex items-center gap-2.5 text-left transition focus:outline-none"
                     >
-                        <svg x-show="submitting" x-cloak class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span x-text="submitting ? 'Creando tu cuenta...' : 'Crear Cuenta de Paciente'"></span>
+                        <div 
+                            class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition"
+                            :class="step === 1 ? 'bg-sicaps-primary text-white shadow-sm ring-2 ring-sicaps-primary/30' : 'bg-sicaps-primary/15 text-sicaps-primary'"
+                        >
+                            1
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold tracking-tight text-sicaps-text">Datos de Cuenta</span>
+                            <span class="block text-[10px] text-sicaps-muted">Identidad y credenciales</span>
+                        </div>
+                    </button>
+
+                    <div class="flex-1 mx-4 h-0.5 bg-sicaps-border" :class="step === 2 ? 'bg-sicaps-primary' : 'bg-sicaps-border'"></div>
+
+                    <button 
+                        type="button" 
+                        @click="goToStep2()"
+                        class="flex items-center gap-2.5 text-left transition focus:outline-none"
+                    >
+                        <div 
+                            class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition"
+                            :class="step === 2 ? 'bg-sicaps-primary text-white shadow-sm ring-2 ring-sicaps-primary/30' : 'bg-sicaps-border text-sicaps-muted'"
+                        >
+                            2
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold tracking-tight text-sicaps-text">Ficha de Admisión</span>
+                            <span class="block text-[10px] text-sicaps-muted">Salud y contacto</span>
+                        </div>
                     </button>
                 </div>
+
+                <!-- PASO 1: DATOS PERSONALES Y ACCESO -->
+                <div x-show="step === 1" class="space-y-4">
+                    
+                    <!-- Nombres y Apellidos -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
+                                Nombres <span class="text-sicaps-danger">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="name" 
+                                required 
+                                x-model="name"
+                                value="{{ old('name') }}"
+                                placeholder="Ej. Juan Andrés"
+                                class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
+                                Apellidos <span class="text-sicaps-danger">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="lastName" 
+                                required 
+                                x-model="lastName"
+                                value="{{ old('lastName') }}"
+                                placeholder="Ej. Pérez Gómez"
+                                class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Tipo y Número de Documento (Sin restricciones arbitrarias para números repetidos) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
+                                Tipo Doc. <span class="text-sicaps-danger">*</span>
+                            </label>
+                            <select 
+                                name="documentType" 
+                                required 
+                                x-model="docType"
+                                class="w-full px-3 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                                <option value="CC">CC (Cédula de Ciudadanía)</option>
+                                <option value="TI">TI (Tarjeta de Identidad)</option>
+                                <option value="CE">CE (Cédula de Extranjería)</option>
+                                <option value="PPT">PPT (Protección Temporal)</option>
+                                <option value="PASSPORT">Pasaporte Internacional</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
+                                Número de Documento <span class="text-sicaps-danger">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="documentNumber" 
+                                required 
+                                x-model="docNum"
+                                inputmode="numeric"
+                                value="{{ old('documentNumber') }}"
+                                :placeholder="docPlaceholder"
+                                class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition font-mono"
+                            >
+                            <p class="text-[10px] text-sicaps-muted mt-1" x-text="docHelper"></p>
+                        </div>
+                    </div>
+
+                    <!-- Correo Electrónico -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
+                            Correo Electrónico <span class="text-sicaps-danger">*</span>
+                        </label>
+                        <input 
+                            type="email" 
+                            name="email" 
+                            required 
+                            x-model="email"
+                            value="{{ old('email') }}"
+                            placeholder="paciente@ejemplo.com"
+                            class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                        >
+                    </div>
+
+                    <!-- Contraseña -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
+                            Contraseña de Acceso <span class="text-sicaps-danger">*</span>
+                        </label>
+                        <div class="relative">
+                            <input 
+                                :type="showPass ? 'text' : 'password'" 
+                                name="password" 
+                                required 
+                                minlength="6"
+                                x-model="password"
+                                placeholder="Mínimo 6 caracteres"
+                                class="w-full px-3.5 pr-11 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                            <button 
+                                type="button" 
+                                @click="showPass = !showPass" 
+                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-sicaps-muted hover:text-sicaps-text transition focus:outline-none"
+                                tabindex="-1"
+                            >
+                                <svg x-show="!showPass" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                                </svg>
+                                <svg x-show="showPass" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Botón para avanzar al Paso 2 -->
+                    <div class="pt-3">
+                        <button 
+                            type="button" 
+                            @click="goToStep2()"
+                            class="w-full py-3 px-4 bg-sicaps-primary hover:bg-sicaps-primary-hover active:scale-[0.99] text-white font-semibold rounded-[10px] shadow-sm transition flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sicaps-primary"
+                        >
+                            <span>Continuar a Ficha de Admisión (Paso 2)</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- PASO 2: FICHA DE ADMISIÓN CLÍNICA Y CONSENTIMIENTO -->
+                <div x-show="step === 2" x-cloak class="space-y-4">
+                    
+                    <div class="p-3 bg-sicaps-sand-light/60 rounded-xl border border-sicaps-border text-xs text-sicaps-muted flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-sicaps-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+                        </svg>
+                        <span>
+                            Estos datos clínicos son necesarios para aperturar tu expediente bajo la <strong>Ley 1090 de 2006</strong> y contactar a tu acompañante ante cualquier eventualidad.
+                        </span>
+                    </div>
+
+                    <!-- Fecha de Nacimiento y Género -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text">
+                                    Fecha de Nacimiento
+                                </label>
+                                <template x-if="computedAge !== null">
+                                    <span 
+                                        class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                        :class="computedAge >= 18 ? 'bg-sicaps-success-soft text-sicaps-success' : 'bg-sicaps-warning-soft text-sicaps-warning'"
+                                        x-text="computedAge + ' años • ' + (computedAge >= 18 ? 'Mayor' : 'Menor')"
+                                    ></span>
+                                </template>
+                            </div>
+                            <input 
+                                type="date" 
+                                name="birthDate" 
+                                x-model="birthDate"
+                                value="{{ old('birthDate') }}"
+                                class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
+                                Sexo / Género
+                            </label>
+                            <select 
+                                name="gender" 
+                                x-model="gender"
+                                class="w-full px-3 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                                <option value="">Seleccionar género...</option>
+                                <option value="FEMENINO">Femenino</option>
+                                <option value="MASCULINO">Masculino</option>
+                                <option value="OTRO">Otro / Prefiero no decir</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Teléfono y EPS -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
+                                Teléfono Móvil
+                            </label>
+                            <input 
+                                type="tel" 
+                                name="phone" 
+                                x-model="phone"
+                                value="{{ old('phone') }}"
+                                placeholder="Ej. 300 123 4567"
+                                class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text placeholder-sicaps-muted/60 text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
+                                Aseguradora / EPS
+                            </label>
+                            <select 
+                                name="eps" 
+                                x-model="eps"
+                                class="w-full px-3 py-2.5 bg-white border border-sicaps-border rounded-[10px] text-sicaps-text text-sm focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                                <option value="">Selecciona tu EPS o régimen...</option>
+                                <option value="EPS SURA">EPS SURA</option>
+                                <option value="Sanitas EPS">Sanitas EPS</option>
+                                <option value="Compensar EPS">Compensar EPS</option>
+                                <option value="Nueva EPS">Nueva EPS</option>
+                                <option value="Salud Total EPS">Salud Total EPS</option>
+                                <option value="Famisanar EPS">Famisanar EPS</option>
+                                <option value="Savia Salud EPS">Savia Salud EPS</option>
+                                <option value="Coosalud EPS">Coosalud EPS</option>
+                                <option value="Mutual Ser EPS">Mutual Ser EPS</option>
+                                <option value="Sanidad Militar / Policía">Sanidad Militar / Policía</option>
+                                <option value="Particular / Prepagada">Particular / Medicina Prepagada</option>
+                                <option value="Otra">Otra institución</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Contacto de Emergencia / Acompañante Obligatorio -->
+                    <div class="p-3.5 bg-white rounded-xl border border-sicaps-border space-y-3">
+                        <span class="block text-xs font-bold text-sicaps-text uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-sicaps-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                            Contacto de Emergencia / Acudiente
+                        </span>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-medium text-sicaps-muted mb-1">Nombre Completo</label>
+                                <input 
+                                    type="text" 
+                                    name="emergencyContactName" 
+                                    x-model="emergencyContactName"
+                                    value="{{ old('emergencyContactName') }}"
+                                    placeholder="Ej. Carmen Gómez"
+                                    class="w-full px-3 py-2 bg-sicaps-bg/40 border border-sicaps-border rounded-lg text-xs text-sicaps-text focus:outline-none focus:ring-1 focus:ring-sicaps-primary"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-medium text-sicaps-muted mb-1">Parentesco</label>
+                                <select 
+                                    name="emergencyContactRelationship" 
+                                    x-model="emergencyContactRelationship"
+                                    class="w-full px-3 py-2 bg-sicaps-bg/40 border border-sicaps-border rounded-lg text-xs text-sicaps-text focus:outline-none focus:ring-1 focus:ring-sicaps-primary"
+                                >
+                                    <option value="">Seleccionar parentesco...</option>
+                                    <option value="Madre">Madre</option>
+                                    <option value="Padre">Padre</option>
+                                    <option value="Pareja / Cónyuge">Pareja / Cónyuge</option>
+                                    <option value="Hijo/a">Hijo/a</option>
+                                    <option value="Hermano/a">Hermano/a</option>
+                                    <option value="Familiar">Familiar cercano</option>
+                                    <option value="Amigo/a">Amigo/a</option>
+                                    <option value="Tutor Legal">Tutor Legal</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-medium text-sicaps-muted mb-1">Teléfono del Contacto de Emergencia</label>
+                            <input 
+                                type="tel" 
+                                name="emergencyContactPhone" 
+                                x-model="emergencyContactPhone"
+                                value="{{ old('emergencyContactPhone') }}"
+                                placeholder="Ej. 315 987 6543"
+                                class="w-full px-3 py-2 bg-sicaps-bg/40 border border-sicaps-border rounded-lg text-xs text-sicaps-text focus:outline-none focus:ring-1 focus:ring-sicaps-primary"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Consentimiento Informado & Habeas Data -->
+                    <div class="pt-2">
+                        <label class="flex items-start gap-2.5 cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                name="informed_consent" 
+                                required 
+                                checked
+                                class="w-4 h-4 mt-0.5 rounded text-sicaps-primary border-sicaps-border focus:ring-sicaps-primary"
+                            >
+                            <span class="text-xs text-sicaps-text leading-snug">
+                                Declaro que mis datos son veraces y acepto el 
+                                <button type="button" @click="showConsentModal = true" class="text-sicaps-primary font-bold hover:underline">
+                                    Consentimiento Informado para Atención Psicológica
+                                </button>
+                                y custodia de historia clínica confidencial (Ley 1090 de 2006 y Ley 1581 de 2012).
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Botones de Navegación del Paso 2 -->
+                    <div class="pt-3 flex items-center gap-3">
+                        <button 
+                            type="button" 
+                            @click="step = 1"
+                            class="w-1/3 py-3 px-3 bg-white border border-sicaps-border hover:bg-sicaps-sand-light text-sicaps-muted font-medium rounded-[10px] text-xs sm:text-sm transition flex items-center justify-center gap-1.5"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+                            <span>Volver</span>
+                        </button>
+
+                        <button 
+                            type="submit" 
+                            :disabled="submitting"
+                            class="w-2/3 py-3 px-4 bg-sicaps-primary hover:bg-sicaps-primary-hover active:scale-[0.99] text-white font-semibold rounded-[10px] shadow-sm transition flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sicaps-primary disabled:opacity-75 disabled:cursor-not-allowed text-xs sm:text-sm"
+                        >
+                            <svg x-show="submitting" x-cloak class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span x-text="submitting ? 'Procesando expediente...' : 'Completar Registro Clínico ✓'"></span>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- MODAL: Consentimiento Informado Legal -->
+                <div 
+                    x-show="showConsentModal" 
+                    x-cloak 
+                    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                >
+                    <div 
+                        @click.away="showConsentModal = false"
+                        class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-sicaps-border space-y-4 max-h-[85vh] overflow-y-auto"
+                    >
+                        <div class="flex items-center justify-between pb-3 border-b border-sicaps-border">
+                            <h3 class="font-bold text-base text-sicaps-text flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg bg-sicaps-primary-soft text-sicaps-primary">Ψ</span>
+                                Consentimiento Informado Psicológico
+                            </h3>
+                            <button type="button" @click="showConsentModal = false" class="text-sicaps-muted hover:text-sicaps-text text-lg font-bold">&times;</button>
+                        </div>
+                        <div class="text-xs text-sicaps-text space-y-2.5 leading-relaxed">
+                            <p><strong>1. Secreto Profesional:</strong> Conforme al Código Deontológico y Bioético del Psicólogo (Ley 1090 de 2006 de la República de Colombia), toda la información verbal, escrita y clínica recopilada en consulta psicológica es de carácter estrictamente confidencial.</p>
+                            <p><strong>2. Historia Clínica Digital:</strong> Sus notas de evolución médica y formato SOAP serán custodiadas en servidores clínicos protegidos, accesibles únicamente por el profesional asignado.</p>
+                            <p><strong>3. Excepciones Éticas:</strong> El secreto profesional solo podrá levantarse ante orden judicial expresa o ante situaciones de riesgo inminente para la vida o integridad física del paciente o de terceras personas.</p>
+                            <p><strong>4. Tratamiento de Datos (Ley 1581 de 2012):</strong> Autoriza el uso de su correo y teléfono para recordatorios de sesiones, confirmación de citas y seguimiento terapéutico.</p>
+                        </div>
+                        <div class="pt-2">
+                            <button 
+                                type="button" 
+                                @click="showConsentModal = false"
+                                class="w-full py-2 bg-sicaps-primary text-white text-xs font-semibold rounded-lg hover:bg-sicaps-primary-hover transition"
+                            >
+                                He leído y comprendido los términos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </form>
 
             <!-- Enlace para volver a iniciar sesión -->

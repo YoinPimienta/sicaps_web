@@ -44,4 +44,14 @@ public class ProfessionalRequestDTO {
     private String specialty;
     
     private String medicalRegistrationNumber;
+
+    private String rethusNumber;
+
+    private String therapeuticApproach;
+
+    private String university;
+
+    private String consultationModality;
+
+    private String consultingRoom;
 }

@@ -60,6 +60,9 @@ public class PatientService {
         patient.setUser(user);
         patient.setEmergencyContactName(dto.getEmergencyContactName());
         patient.setEmergencyContactPhone(dto.getEmergencyContactPhone());
+        patient.setEmergencyContactRelationship(dto.getEmergencyContactRelationship());
+        patient.setEps(dto.getEps());
+        patient.setInformedConsentAccepted(dto.getInformedConsentAccepted() != null ? dto.getInformedConsentAccepted() : true);
         patient.setMedicalBackground(dto.getMedicalBackground());
         patient.setFamilyBackground(dto.getFamilyBackground());
         patient.setPsychologicalBackground(dto.getPsychologicalBackground());
@@ -90,6 +93,8 @@ public class PatientService {
         // Update Patient info
         if (dto.getEmergencyContactName() != null) patient.setEmergencyContactName(dto.getEmergencyContactName());
         if (dto.getEmergencyContactPhone() != null) patient.setEmergencyContactPhone(dto.getEmergencyContactPhone());
+        if (dto.getEmergencyContactRelationship() != null) patient.setEmergencyContactRelationship(dto.getEmergencyContactRelationship());
+        if (dto.getEps() != null) patient.setEps(dto.getEps());
         
         return patientRepository.save(patient);
     }

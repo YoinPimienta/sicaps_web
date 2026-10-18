@@ -93,25 +93,48 @@ class AuthController
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'lastName' => 'required',
-            'documentType' => 'required',
-            'documentNumber' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|min:6'
+            'name' => 'required|string|max:100',
+            'lastName' => 'required|string|max:100',
+            'documentType' => 'required|in:CC,TI,CE,PASSPORT,PPT',
+            'documentNumber' => 'required|string|min:5|max:30',
+            'email' => 'required|email|max:150',
+            'password' => 'required|min:6',
+            'birthDate' => 'nullable|date',
+            'gender' => 'nullable|in:MASCULINO,FEMENINO,OTRO',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'eps' => 'nullable|string|max:100',
+            'emergencyContactName' => 'nullable|string|max:150',
+            'emergencyContactPhone' => 'nullable|string|max:20',
+            'emergencyContactRelationship' => 'nullable|string|max:50',
+        ], [
+            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
+            'documentNumber.required' => 'El número de identificación es obligatorio.',
+            'documentNumber.min' => 'El documento de identificación debe tener al menos 5 dígitos.',
         ]);
 
         $apiUrl = config('services.backend.api_url', env('API_BASE_URL', 'http://backend:8080/api'));
 
         try {
-            $response = Http::timeout(65)->retry(2, 500)->post($apiUrl . '/auth/register', [
+            $payload = [
                 'name' => trim($request->name),
                 'lastName' => trim($request->lastName),
                 'documentType' => trim($request->documentType),
                 'documentNumber' => trim($request->documentNumber),
                 'email' => strtolower(trim($request->email)),
                 'password' => trim($request->password),
-            ]);
+                'phone' => trim($request->phone ?? ''),
+                'address' => trim($request->address ?? ''),
+                'birthDate' => $request->birthDate,
+                'gender' => $request->gender,
+                'eps' => trim($request->eps ?? ''),
+                'emergencyContactName' => trim($request->emergencyContactName ?? ''),
+                'emergencyContactPhone' => trim($request->emergencyContactPhone ?? ''),
+                'emergencyContactRelationship' => trim($request->emergencyContactRelationship ?? ''),
+                'informedConsentAccepted' => true,
+            ];
+
+            $response = Http::timeout(65)->retry(2, 500)->post($apiUrl . '/auth/register', $payload);
 
             if ($response->successful()) {
                 return redirect('/login')->with('success', 'Registro exitoso. Ya puedes iniciar sesión.');

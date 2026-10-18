@@ -1,5 +1,5 @@
 package com.sicaps.backend.enums;
 
 public enum DocumentType {
-    CC, CE, TI, PASSPORT
+    CC, CE, TI, PASSPORT, PPT
 }

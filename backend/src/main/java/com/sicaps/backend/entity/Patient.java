@@ -30,6 +30,15 @@ public class Patient {
     @Column(name = "emergency_contact_phone", length = 20)
     private String emergencyContactPhone;
 
+    @Column(name = "emergency_contact_relationship", length = 50)
+    private String emergencyContactRelationship;
+
+    @Column(name = "eps", length = 100)
+    private String eps;
+
+    @Column(name = "informed_consent_accepted")
+    private Boolean informedConsentAccepted = true;
+
     @Column(columnDefinition = "TEXT")
     private String medicalBackground;
 

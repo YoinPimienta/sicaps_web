@@ -97,30 +97,47 @@
                         <!-- Tarjeta Profesional / Registro ReTHUS -->
                         <div>
                             <label for="medicalRegistrationNumber" class="block text-xs font-semibold text-sicaps-text mb-1.5 flex items-center justify-between">
-                                <span>Tarjeta Profesional / ReTHUS <span class="text-sicaps-danger">*</span></span>
+                                <span>Tarjeta Profesional Colpsic <span class="text-sicaps-danger">*</span></span>
                                 <span class="text-[10px] text-sicaps-muted font-normal">Obligatorio por ley</span>
                             </label>
-                            <div class="relative">
-                                <input 
-                                    type="text" 
-                                    id="medicalRegistrationNumber" 
-                                    name="medicalRegistrationNumber" 
-                                    required 
-                                    x-model="regNumber"
-                                    placeholder="Ej: TP-142857 / Colpsic" 
-                                    value="{{ old('medicalRegistrationNumber') }}"
-                                    class="w-full pl-3.5 pr-4 py-2.5 bg-white border border-sicaps-border rounded-xl text-xs sm:text-sm text-sicaps-text font-mono placeholder-sicaps-muted/60 focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
-                                >
-                            </div>
+                            <input 
+                                type="text" 
+                                id="medicalRegistrationNumber" 
+                                name="medicalRegistrationNumber" 
+                                required 
+                                x-model="regNumber"
+                                placeholder="Ej: TP-142857 / Colpsic" 
+                                value="{{ old('medicalRegistrationNumber') }}"
+                                class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-xl text-xs sm:text-sm text-sicaps-text font-mono placeholder-sicaps-muted/60 focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
                             <p class="text-[10px] text-sicaps-muted mt-1 leading-tight">
-                                Registro del Colegio Profesional o Ministerio de Salud necesario para suscribir actos clínicos.
+                                Registro del Colegio Colombiano de Psicólogos.
                             </p>
                         </div>
 
-                        <!-- Especialidad / Enfoque Clínico -->
+                        <!-- Registro ReTHUS -->
+                        <div>
+                            <label for="rethusNumber" class="block text-xs font-semibold text-sicaps-text mb-1.5 flex items-center justify-between">
+                                <span>Registro ReTHUS MinSalud</span>
+                                <span class="text-[10px] text-sicaps-muted font-normal">Habilitación Sanitaria</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="rethusNumber" 
+                                name="rethusNumber" 
+                                placeholder="Ej: RETHUS-2024-9842" 
+                                value="{{ old('rethusNumber') }}"
+                                class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-xl text-xs sm:text-sm text-sicaps-text font-mono placeholder-sicaps-muted/60 focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                            <p class="text-[10px] text-sicaps-muted mt-1 leading-tight">
+                                Código oficial de Talento Humano en Salud.
+                            </p>
+                        </div>
+
+                        <!-- Especialidad Clínica -->
                         <div>
                             <label for="specialty" class="block text-xs font-semibold text-sicaps-text mb-1.5">
-                                Especialidad o Enfoque Clínico <span class="text-sicaps-danger">*</span>
+                                Especialidad Clínica <span class="text-sicaps-danger">*</span>
                             </label>
                             <select 
                                 id="specialty" 
@@ -132,15 +149,61 @@
                                 <option value="Psicología Clínica y de la Salud">Psicología Clínica y de la Salud</option>
                                 <option value="Neuropsicología Clínica">Neuropsicología Clínica</option>
                                 <option value="Psicología Infantil y de la Adolescencia">Psicología Infantil y de la Adolescencia</option>
-                                <option value="Terapia Cognitivo-Conductual (TCC)">Terapia Cognitivo-Conductual (TCC)</option>
                                 <option value="Terapia Familiar y de Pareja">Terapia Familiar y de Pareja</option>
                                 <option value="Psicología Forense y Peritaje">Psicología Forense y Peritaje</option>
                                 <option value="Psicoterapia Humanista e Integrativa">Psicoterapia Humanista e Integrativa</option>
                                 <option value="Psicología General y Evaluación">Psicología General y Evaluación</option>
                             </select>
-                            <p class="text-[10px] text-sicaps-muted mt-1">
-                                Área principal de consulta y asignación de casos clínicos.
-                            </p>
+                        </div>
+
+                        <!-- Enfoque Terapéutico -->
+                        <div>
+                            <label for="therapeuticApproach" class="block text-xs font-semibold text-sicaps-text mb-1.5">
+                                Enfoque Terapéutico Principal
+                            </label>
+                            <select 
+                                id="therapeuticApproach" 
+                                name="therapeuticApproach" 
+                                class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-xl text-xs sm:text-sm text-sicaps-text focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                                <option value="Terapia Cognitivo-Conductual (TCC)">Terapia Cognitivo-Conductual (TCC)</option>
+                                <option value="Terapia Sistémica Familiar">Terapia Sistémica Familiar</option>
+                                <option value="Terapia de Aceptación y Compromiso (ACT)">Terapia de Aceptación y Compromiso (ACT)</option>
+                                <option value="Psicoanálisis y Enfoque Psicodinámico">Psicoanálisis y Enfoque Psicodinámico</option>
+                                <option value="Psicoterapia Gestalt / Humanista">Psicoterapia Gestalt / Humanista</option>
+                                <option value="Enfoque Integrativo y Multimodal">Enfoque Integrativo y Multimodal</option>
+                            </select>
+                        </div>
+
+                        <!-- Universidad de Egreso -->
+                        <div>
+                            <label for="university" class="block text-xs font-semibold text-sicaps-text mb-1.5">
+                                Universidad de Egreso
+                            </label>
+                            <input 
+                                type="text" 
+                                id="university" 
+                                name="university" 
+                                placeholder="Ej: Universidad Nacional de Colombia" 
+                                value="{{ old('university') }}"
+                                class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-xl text-xs sm:text-sm text-sicaps-text placeholder-sicaps-muted/60 focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                        </div>
+
+                        <!-- Modalidad de Consulta -->
+                        <div>
+                            <label for="consultationModality" class="block text-xs font-semibold text-sicaps-text mb-1.5">
+                                Modalidad de Consulta
+                            </label>
+                            <select 
+                                id="consultationModality" 
+                                name="consultationModality" 
+                                class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-xl text-xs sm:text-sm text-sicaps-text focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                            >
+                                <option value="Presencial y Telepsicología">Presencial y Telepsicología (Mixto)</option>
+                                <option value="Solo Consulta Presencial">Solo Consulta Presencial</option>
+                                <option value="Solo Telepsicología (Virtual)">Solo Telepsicología (Virtual)</option>
+                            </select>
                         </div>
 
                     </div>
@@ -205,6 +268,7 @@
                                 >
                                     <option value="CC">Cédula de Ciudadanía (CC)</option>
                                     <option value="CE">Cédula de Extranjería (CE)</option>
+                                    <option value="PPT">Protección Temporal (PPT)</option>
                                     <option value="PASSPORT">Pasaporte</option>
                                 </select>
                             </div>
@@ -219,10 +283,14 @@
                                     name="documentNumber" 
                                     required 
                                     x-model="docNum"
-                                    placeholder="Número de documento sin puntos" 
+                                    inputmode="numeric"
+                                    placeholder="Ej: 1020111234 (admite dígitos repetidos)" 
                                     value="{{ old('documentNumber') }}"
-                                    class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-xl text-xs sm:text-sm text-sicaps-text placeholder-sicaps-muted/60 focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition"
+                                    class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-xl text-xs sm:text-sm text-sicaps-text placeholder-sicaps-muted/60 focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition font-mono"
                                 >
+                                <p class="text-[10px] text-sicaps-muted mt-1">
+                                    Ingresa el número de identificación sin puntos ni espacios.
+                                </p>
                             </div>
                         </div>
 

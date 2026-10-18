@@ -11,8 +11,12 @@
     $docNum = $patient['user']['documentNumber'] ?? '';
     $email = $patient['user']['email'] ?? 'No registrado';
     $phone = $patient['user']['phone'] ?? 'Sin teléfono registrado';
+    $eps = $patient['eps'] ?? 'Particular';
     $emName = $patient['emergencyContactName'] ?? 'No registrado';
     $emPhone = $patient['emergencyContactPhone'] ?? '';
+    $emRel = $patient['emergencyContactRelationship'] ?? '';
+    $birthDate = $patient['user']['birthDate'] ?? '';
+    $gender = $patient['user']['gender'] ?? 'No registrado';
     $evoCount = count($evolutions ?? []);
 @endphp
 
@@ -299,7 +303,12 @@
 
             <div>
                 <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted block">Documento de Identidad</span>
-                <span class="font-bold text-sicaps-text mt-1 block">{{ $docType }} {{ $docNum }}</span>
+                <span class="font-bold text-sicaps-text mt-1 block font-mono">{{ $docType }} {{ $docNum }}</span>
+            </div>
+
+            <div>
+                <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted block">Aseguradora / EPS</span>
+                <span class="font-bold text-sicaps-primary mt-1 block">{{ $eps }}</span>
             </div>
 
             <div>
@@ -313,8 +322,25 @@
             </div>
 
             <div>
+                <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted block">Fecha de Nacimiento</span>
+                <span class="font-medium text-sicaps-text mt-1 block">
+                    {{ !empty($birthDate) ? date('d/m/Y', strtotime($birthDate)) : 'No registrada' }}
+                </span>
+            </div>
+
+            <div>
+                <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted block">Sexo / Género</span>
+                <span class="font-medium text-sicaps-text mt-1 block">{{ $gender }}</span>
+            </div>
+
+            <div>
                 <span class="text-xs font-semibold uppercase tracking-wider text-sicaps-muted block">Contacto de Emergencia</span>
-                <span class="font-medium text-sicaps-text mt-1 block">{{ $emName }}</span>
+                <span class="font-bold text-sicaps-text mt-1 block">
+                    {{ $emName }}
+                    @if(!empty($emRel))
+                        <span class="text-xs text-sicaps-muted font-normal">({{ $emRel }})</span>
+                    @endif
+                </span>
             </div>
 
             <div>
