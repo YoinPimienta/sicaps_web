@@ -31,7 +31,7 @@
         <div>
             <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-sicaps-text flex items-center gap-2">
                 <span>{{ $greeting }}, {{ $userName }}</span>
-                <span class="inline-block">👋</span>
+                <span class="inline-block animate-wave select-none cursor-default" title="¡Hola!">👋</span>
             </h1>
             <p class="mt-1 text-sm text-sicaps-muted">
                 Hoy es {{ \Carbon\Carbon::now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}. Información en tiempo real de tu consulta.

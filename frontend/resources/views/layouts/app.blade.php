@@ -78,6 +78,23 @@
         ::-webkit-scrollbar-thumb { background: #D5CEC2; border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: #B3AAA0; }
         
+        /* Animación de saludo para la mano */
+        @keyframes wave-hand {
+            0% { transform: rotate(0deg); }
+            10% { transform: rotate(14deg); }
+            20% { transform: rotate(-8deg); }
+            30% { transform: rotate(14deg); }
+            40% { transform: rotate(-4deg); }
+            50% { transform: rotate(10deg); }
+            60% { transform: rotate(0deg); }
+            100% { transform: rotate(0deg); }
+        }
+        .animate-wave {
+            display: inline-block;
+            transform-origin: 70% 70%;
+            animation: wave-hand 2.2s infinite ease-in-out;
+        }
+
         /* Foco accesible */
         a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
             outline: 2px solid #2F7F79;
@@ -309,7 +326,7 @@
                         @endphp
                         <h2 class="text-xl font-bold text-sicaps-text tracking-tight flex items-center gap-2">
                             <span>{{ $greeting }}, {{ $userName }}</span>
-                            <span class="text-xl">👋</span>
+                            <span class="text-xl animate-wave select-none cursor-default" title="¡Hola!">👋</span>
                         </h2>
                         <p class="text-xs text-sicaps-muted mt-0.5 font-medium capitalize">{{ $fechaHoy }}</p>
                     @endif
