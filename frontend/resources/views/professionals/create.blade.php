@@ -284,7 +284,7 @@
                                     required 
                                     x-model="docNum"
                                     inputmode="numeric"
-                                    placeholder="Ej: 1020111234 (admite dígitos repetidos)" 
+                                    placeholder="Ej: 1020111234" 
                                     value="{{ old('documentNumber') }}"
                                     class="w-full px-3.5 py-2.5 bg-white border border-sicaps-border rounded-xl text-xs sm:text-sm text-sicaps-text placeholder-sicaps-muted/60 focus:outline-none focus:ring-2 focus:ring-sicaps-primary/30 focus:border-sicaps-primary transition font-mono"
                                 >

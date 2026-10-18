@@ -237,7 +237,7 @@
 
                     get docHelper() {
                         switch(this.docType) {
-                            case 'CC': return 'Cédula de Ciudadanía: 6 a 10 dígitos numéricos (se admiten números repetidos ej. 1020111...)';
+                            case 'CC': return 'Cédula de Ciudadanía: 6 a 10 dígitos numéricos';
                             case 'TI': return 'Tarjeta de Identidad: Formato numérico para menores de edad (8 a 11 dígitos)';
                             case 'CE': return 'Cédula de Extranjería para residentes en Colombia';
                             case 'PPT': return 'Permiso por Protección Temporal emitido por Migración';
@@ -336,7 +336,7 @@
                         </div>
                     </div>
 
-                    <!-- Tipo y Número de Documento (Sin restricciones arbitrarias para números repetidos) -->
+                    <!-- Tipo y Número de Documento -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-semibold uppercase tracking-wider text-sicaps-text mb-1.5">
