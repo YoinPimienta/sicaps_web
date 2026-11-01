@@ -62,11 +62,12 @@ El proyecto está diseñado de forma contenerizada (Docker) para un despliegue n
 3. Elige como "Environment" la opción **Docker**.
 4. Añade las Variables de Entorno:
    - `APP_KEY`: *(Genera uno ejecutando `php -r "echo 'base64:'.base64_encode(random_bytes(32));"`)*
-   - `API_BASE_URL`: `https://sicaps-backend.onrender.com/api` (La URL que copiaste en el Paso 2).
+   - `API_BASE_URL`: `https://sicaps-backend.onrender.com/api` (La URL pública que copiaste en el Paso 2, seguida de `/api`; no uses `http://backend:8080/api`, que solo funciona dentro de Docker Compose).
 5. Despliega la aplicación.
+
+Si despliegas ambos servicios desde el `render.yaml` de este repositorio, `API_BASE_URL` ya apunta al backend público definido en el archivo.
 
 ## 8. Usuarios de Prueba
 Al ejecutar el proyecto por primera vez, el backend (Java) creará automáticamente los roles e insertará este usuario administrador:
 - **Correo:** `admin@sicaps.com`
 - **Contraseña:** `admin123`
-

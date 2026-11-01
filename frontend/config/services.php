@@ -36,7 +36,11 @@ return [
     ],
 
     'backend' => [
-        'api_url' => env('API_BASE_URL', 'http://backend:8080/api'),
+        'api_url' => env('RENDER') && parse_url(env('API_BASE_URL', ''), PHP_URL_HOST) === 'backend'
+            ? 'https://sicaps-backend.onrender.com/api'
+            : env('API_BASE_URL', env('RENDER')
+                ? 'https://sicaps-backend.onrender.com/api'
+                : 'http://backend:8080/api'),
     ],
 
 ];

@@ -29,4 +29,4 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: API_BASE_URL
-        sync: false # Pega aquí la URL pública de tu sicaps-backend + /api (Ej: https://sicaps-backend.onrender.com/api)
+        value: https://sicaps-backend.onrender.com/api
