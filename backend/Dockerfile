@@ -26,5 +26,15 @@ COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-# Optimización de JVM para arranque ultra-rápido y bajo consumo de memoria en la nube
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+# Optimización de JVM para arranque ultra-rápido y límite estricto de memoria para Render Free (512MB RAM)
+ENTRYPOINT ["java", \
+    "-XX:+UseContainerSupport", \
+    "-Xms128m", \
+    "-Xmx220m", \
+    "-Xss256k", \
+    "-XX:MaxMetaspaceSize=110m", \
+    "-XX:+UseSerialGC", \
+    "-XX:+TieredCompilation", \
+    "-XX:TieredStopAtLevel=1", \
+    "-Djava.security.egd=file:/dev/./urandom", \
+    "-jar", "app.jar"]

@@ -57,6 +57,9 @@
     <script>
         // Precalentamiento proactivo: Despertar el backend en segundo plano mientras el usuario digita sus credenciales
         fetch('/health', { cache: 'no-cache' }).catch(function(){});
+        try {
+            fetch('https://sicaps-backend.onrender.com/api/health', { mode: 'no-cors', cache: 'no-cache' }).catch(function(){});
+        } catch(e) {}
     </script>
 </head>
 <body class="h-full font-sans antialiased text-sicaps-text bg-sicaps-bg">

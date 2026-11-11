@@ -63,14 +63,12 @@ class AuthController
                 'email' => 'El servidor respondió con un error temporal (' . $response->status() . '). Por favor intenta de nuevo.',
             ])->onlyInput('email');
 
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Fallo de conexión al backend en login: ' . $e->getMessage());
+
             return back()->withErrors([
-                'email' => 'El servidor clínico se está reanudando tras reposo. Por favor espera 30 segundos y vuelve a presionar Ingresar.',
+                'email' => 'El servidor clínico se está reanudando tras reposo en la nube. Por favor espera 15 segundos y vuelve a presionar "Ingresar al Sistema".',
             ])->onlyInput('email');
-        } catch (\Exception $e) {
-            return back()->withErrors([
-                'email' => 'Error de conexión con el servidor de autenticación. Verifica tu conexión a internet o espera unos instantes.',
-            ]);
         }
     }
 
@@ -147,10 +145,10 @@ class AuthController
             $errorMsg = $response->json('message') ?? 'Error en el registro';
             return back()->withErrors(['email' => $errorMsg])->withInput();
 
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Fallo de conexión al backend en register: ' . $e->getMessage());
+
             return back()->withErrors(['email' => 'El servidor clínico se está reanudando tras reposo. Por favor espera unos momentos e intenta de nuevo.'])->withInput();
-        } catch (\Exception $e) {
-            return back()->withErrors(['email' => 'Error de conexión con el servidor.'])->withInput();
         }
     }
 }
