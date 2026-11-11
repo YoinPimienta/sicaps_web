@@ -205,11 +205,45 @@
             </div>
 
             <!-- Título y bienvenida -->
-            <div class="mb-8">
+            <div class="mb-6">
                 <h1 class="text-2xl sm:text-3xl font-bold text-sicaps-text tracking-tight">Bienvenido de nuevo</h1>
                 <p class="mt-2 text-sm text-sicaps-muted">
                     Ingresa tus credenciales para acceder a tu panel profesional o consultar tus citas.
                 </p>
+
+                <!-- Indicador visual de estado del servidor en la nube -->
+                <div 
+                    x-data="{ 
+                        serverStatus: 'checking', 
+                        checkHealth() {
+                            fetch('https://sicaps-backend.onrender.com/api/health', { cache: 'no-cache' })
+                                .then(r => r.json())
+                                .then(d => { 
+                                    if (d && (d.status === 'UP' || d.database === 'UP')) { 
+                                        this.serverStatus = 'ready'; 
+                                    } 
+                                })
+                                .catch(() => { 
+                                    this.serverStatus = 'waking'; 
+                                    setTimeout(() => this.checkHealth(), 4000); 
+                                });
+                        }
+                    }"
+                    x-init="checkHealth()"
+                    class="mt-3.5"
+                >
+                    <div x-show="serverStatus === 'ready'" x-cloak class="inline-flex items-center gap-2 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        Servidor clínico activo y listo
+                    </div>
+                    <div x-show="serverStatus !== 'ready'" class="inline-flex items-center gap-2 py-1 px-2.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                        </span>
+                        Conectando con el servidor en la nube...
+                    </div>
+                </div>
             </div>
 
             <!-- Alertas de error de credenciales / validación -->
@@ -347,7 +381,7 @@
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span x-text="submitting ? 'Ingresando al sistema...' : 'Ingresar al Sistema'"></span>
+                        <span x-text="submitting ? 'Verificando con el servidor clínico...' : 'Ingresar al Sistema'"></span>
                         <svg x-show="!submitting" class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
                         </svg>

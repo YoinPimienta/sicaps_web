@@ -29,7 +29,7 @@ class AuthController
         $password = trim($request->password);
 
         try {
-            $response = Http::timeout(65)->retry(2, 500)->post($apiUrl . '/auth/login', [
+            $response = Http::timeout(75)->retry(2, 1000)->post($apiUrl . '/auth/login', [
                 'email' => $email,
                 'password' => $password,
             ]);
